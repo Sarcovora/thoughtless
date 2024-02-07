@@ -1,3 +1,4 @@
+/* FIXME Depending on which UI Library we go with, we might not want to include the base*/
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

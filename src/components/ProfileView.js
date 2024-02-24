@@ -28,17 +28,6 @@ const statusColorMap = {
 const ProfileView = () => {
     const [selectedUser, setSelectedUser] = useState(null);
 
-    // useEffect(() => {
-    //     setSelectedUser(users[2]);
-    //     console.log(users[2]);
-    // }, []);
-
-    // const handleUserChange = (userId) => {
-    // 	console.log(userId)
-    // 	const user = users.find(user => user.id === userId);
-    // 	setSelectedUser(user);
-    // };
-
     const handleUserChange = (event) => {
         // Extract the selected user's ID from the event object
         const userId = parseInt(event.target.value, 10); // Assuming the IDs are integers

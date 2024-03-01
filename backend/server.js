@@ -94,17 +94,158 @@ app.post("/reviewer", async (req, res) => {
         orgSnapshot.forEach(async (doc) => {
             // add reviewer document to the subcollection named reviewers within the org collection
             const orgId = doc.id;
-            const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection("reviewers").doc(documentRef.id);
+            const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection(REVIEWER_COLLECTION).doc(documentRef.id);
             await reviewerRef.set({
                 name: name,
                 reviewerId: documentRef.id
             });
+            // res.status(200).send({ id: reviewerRef.id });
         });
     } catch (error) {
         res.status(500).send(error.message)
     }
 });
 
+//POST : Endpoint to post a new app 
+app.post("/app", async(req,res) => {
+    try {
+        const { name, org, responses } = req.body;
+
+        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); // FIXME should change this to be ID 
+
+        orgSnapshot.forEach(async (doc) => {
+            // add reviewer document to the subcollection named reviewers within the org collection
+            const orgId = doc.id;
+            const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc();
+            await appRef.set({
+                name: name,
+                responses: responses
+            });
+            res.status(200).send({ id: appRef.id });
+
+        });
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+}); 
+
+//GET: endpoint to get all of the apps for an org
+app.get("/apps", async(req, res)=> {
+    try {
+
+        const {org} = req.body;
+
+        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); // FIXME should change this to be ID 
+
+        if (orgSnapshot.empty) {
+            console.log('No matching documents.');
+            res.status(404).send('No matching documents.');
+            return;
+        }  
+
+        // Access the apps subcollection within the org document
+        const orgData = orgSnapshot.docs[0].data(); // Assuming there's only one org with this name
+        const appsCollectionRef = db.collection(ORG_COLLECTION).doc(orgSnapshot.docs[0].id).collection(APPS_COLLECTION);
+        
+        // Retrieve all apps from the apps subcollection
+        const appsSnapshot = await appsCollectionRef.get();
+        const apps = [];
+        appsSnapshot.forEach((doc) => {
+            apps.push(doc.data());
+        });
+
+        res.status(200).send(apps);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+})
+
+// POST: push feedback from a reviewer to an app
+app.post("/feedback", async (req, res) => {
+    const { org, reviewer, app, feedback_array, comments_array } = req.body;
+
+    try {
+        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get();
+        if (orgSnapshot.empty) {
+            console.log('No matching documents. for org');
+            res.status(404).send('No matching documents for org.');
+            return;
+        }
+
+        const orgId = orgSnapshot.docs[0].id;
+        const appSnapshot = await db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).where("name", "==", app).get();
+
+        if (appSnapshot.empty) {
+            console.log('No matching documents for app');
+            res.status(404).send('No matching documents for app.');
+            return;
+        }
+
+        const appId = appSnapshot.docs[0].id;
+        const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc(appId);
+
+        // Construct the data object to be updated
+        const updateData = {};
+        updateData[`reviewers.${reviewer}.feedback`] = feedback_array;
+        updateData[`reviewers.${reviewer}.comments`] = comments_array;
+
+        // Update the document with the new data
+        await appRef.update(updateData);
+
+        res.status(200).send('Feedback added successfully.');
+    } catch (error) {
+        console.error("Error adding feedback:", error);
+        res.status(500).send(error.message);
+    }
+});
+
+//GET for feedback 
+app.get("/feedback", async (req, res) => {
+    const { org, reviewer, app } = req.body; 
+
+    try {
+        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get();
+        if (orgSnapshot.empty) {
+            console.log('No matching documents.');
+            res.status(404).send('No matching documents.');
+            return;
+        }
+
+        const orgId = orgSnapshot.docs[0].id;
+        const appSnapshot = await db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).where("name", "==", app).get();
+
+        if (appSnapshot.empty) {
+            console.log('No matching app documents.');
+            res.status(404).send('No matching documents.');
+            return;
+        }
+
+        const appId = appSnapshot.docs[0].id;
+        const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc(appId);
+
+        const appDoc = await appRef.get();
+        if (!appDoc.exists) {
+            console.log('App document not found.');
+            res.status(404).send('App document not found.');
+            return;
+        }
+
+        const appData = appDoc.data();
+        if (!appData.reviewers || !appData.reviewers[reviewer]) {
+            console.log('Reviewer data not found.');
+            res.status(404).send('Reviewer data not found.');
+            return;
+        }
+
+        const feedbackArray = appData.reviewers[reviewer].feedback || [];
+        const commentsArray = appData.reviewers[reviewer].comments || [];
+
+        res.status(200).json({ feedbackArray, commentsArray });
+    } catch (error) {
+        console.error("Error retrieving feedback:", error);
+        res.status(500).send(error.message);
+    }
+});
 
 
 // const MAIN_COLLECTION_NAME = 'orgs'

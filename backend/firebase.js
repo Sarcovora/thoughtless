@@ -18,3 +18,19 @@ const cors = require("cors");
 app.use( cors({ origin:true }));
 
 module.exports = db; 
+
+// import { initializeApp } from 'firebase/app';
+// import { getFirestore, collection } from 'firebase/firestore';
+// require("dotenv").config();
+
+// const creds = JSON.parse(process.env.FIREBASE_CREDENTIALS);
+
+// // Firebase initialization
+// initializeApp({
+//   credential: admin.credential.cert(creds),
+//   databaseURL: "https://thoughtless-backend.firebaseio.com"
+// });
+
+// const db = getFirestore();
+
+// module.exports = db;

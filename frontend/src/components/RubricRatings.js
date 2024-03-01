@@ -1,7 +1,4 @@
-import {
-    Slider,
-    Textarea,
-} from '@nextui-org/react';
+import { Slider, Textarea } from '@nextui-org/react';
 
 export default function RubricRatings() {
     return (
@@ -13,7 +10,7 @@ export default function RubricRatings() {
                 label="Response rating"
                 showSteps={false}
                 maxValue={5}
-                minValue={0}
+                minValue={1}
                 defaultValue={3}
                 className="max-w-md"
             />

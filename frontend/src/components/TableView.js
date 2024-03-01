@@ -155,7 +155,7 @@ export default function TableView() {
                                     <ModalBody>
                                         {selectedUser ? <ProfileModal selectedUser={selectedUser} /> : "No user selected"}
                                     </ModalBody>
-                                    <ModalFooter>
+                                    {/* <ModalFooter> */}
                                         {/* <Button
                                             color="danger"
                                             variant="light"
@@ -163,14 +163,14 @@ export default function TableView() {
                                         >
                                             Close
                                         </Button> */}
-                                        <Button
-                                            color="primary"
+                                        {/* <Button
                                             size='md'
                                             onPress={onClose}
+                                            className='bg-black text-white'
                                         >
                                             Done
-                                        </Button>
-                                    </ModalFooter>
+                                        </Button> */}
+                                    {/* </ModalFooter> */}
                                 </>
                             )}
                         </ModalContent>

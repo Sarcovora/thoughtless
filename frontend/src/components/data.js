@@ -3,8 +3,13 @@ const columns = [
     { name: 'NAME', uid: 'name' },
     { name: 'ROLE', uid: 'role' },
     { name: 'STATUS', uid: 'status' },
-    { name: 'ACTIONS', uid: 'actions' },
+    // { name: 'ACTIONS', uid: 'actions' },
 ];
+
+const questions = [
+    {id: 1, question: 'What is your name?'},
+    {id: 2, question: 'Why do you want to join this org?'},
+]
 
 const users = [
     {
@@ -20,6 +25,10 @@ const users = [
             linkedin: 'https://www.linkedin.com/',
             github: 'https://github.com/',
         },
+        responses: {
+            1: 'Anakin Skywalker',
+            2: 'I want to join the Jedi Order because I want to bring peace to the galaxy.'
+        }
     },
     {
         id: 2,
@@ -34,6 +43,10 @@ const users = [
             linkedin: 'https://www.linkedin.com/',
             github: 'https://github.com/',
         },
+        responses: {
+            1: 'Zoey Lang',
+            2: 'I want to join the Jedi Order because I want to bring peace to the galaxy.'
+        }
     },
     {
         id: 3,
@@ -48,6 +61,10 @@ const users = [
             linkedin: 'https://www.linkedin.com/',
             github: 'https://github.com/',
         },
+        responses: {
+            1: 'Jane Fisher',
+            2: 'I want to join the Jedi Order because I want to bring peace to the galaxy.'
+        }
     },
     {
         id: 4,
@@ -62,6 +79,10 @@ const users = [
             linkedin: 'https://www.linkedin.com/',
             github: 'https://github.com/',
         },
+        responses: {
+            1: 'William Howard',
+            2: 'I want to join the Jedi Order because I want to bring peace to the galaxy.'
+        }
     },
     {
         id: 5,
@@ -76,7 +97,12 @@ const users = [
             linkedin: 'https://www.linkedin.com/',
             github: 'https://github.com/',
         },
+        responses: {
+            1: 'Kristen Copper',
+            2: 'I want to join the Jedi Order because I want to bring peace to the galaxy.'
+        }
     },
 ];
 
 export { columns, users };
+

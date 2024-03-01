@@ -17,38 +17,96 @@ app.use(express.json());
 
 const ORG_COLLECTION = 'orgs'
 const REVIEWER_COLLECTION = 'reviewers'
-const QUESTIONS_COLLECTION = 'questions'
 const APPS_COLLECTION = 'apps'
 
-const orgCollectionRef = collection(db, ORG_COLLECTION)
+const orgCollectionRef = db.collection(ORG_COLLECTION)
 
+// Endpoint to make a new org
 app.post("/org", async (req, res) => {
     try {
-        
-        const {name, questions} = req.body; 
-
-        const document = await addDoc(orgCollectionRef, {
-            name: name,
-            questions: questions
-        })
-
-        // const reviewerCollectionRef = collection(db, ORG_COLLECTION, document.id, REVIEWER_COLLECTION)
-        // const appCollectionRef = collection(db, ORG_COLLECTION, document.id, APPS_COLLECTION)
-        // await addDoc(reviewerCollectionRef, {
-        //     name: 'Joe'
-        // })
-        // await addDoc(appCollectionRef, {
-        //     applicant: 'Bob'
-        // })
-
-        //   Sending a successful response with the ID of the newly created org
-        res.status(201).send({ id: document.id });
-    }
-    catch (error) {
+      const { name, questions } = req.body;
+  
+      const documentRef = db.collection(ORG_COLLECTION).doc();
+      await documentRef.set({
+        name: name,
+        questions: questions
+      });
+  
+      const reviewerCollectionRef = documentRef.collection(REVIEWER_COLLECTION);
+      await reviewerCollectionRef.add({
+        name: 'Joe'
+      });
+  
+      const appCollectionRef = documentRef.collection(APPS_COLLECTION);
+      await appCollectionRef.add({
+        applicant: 'Bob'
+      });
+  
+      // Sending a successful response with the ID of the newly created org
+      res.status(201).send({ id: documentRef.id });
+    } catch (error) {
       // Sending an error response in case of an exception
       res.status(500).send(error.message);
     }
-}); 
+  }); 
+
+// GET: Endpoint to retrieve all orgs
+app.get("/orgs", async (req, res) => {
+    try {
+        const snapshot = await db.collection(ORG_COLLECTION).get();
+
+        let orgs = [];
+        if (snapshot.empty) {
+            console.log('No matching documents.');
+            res.status(404).send('No matching documents.');
+            return;
+        }  
+
+        snapshot.forEach((doc) => {
+            orgs.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+
+        res.status(200).send(orgs);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+// POST: Endpoint to make a new reviewer and assign them to their org ... 
+app.post("/reviewer", async (req, res) => {
+    try {
+        const { name, org } = req.body;
+
+        const documentRef = db.collection(REVIEWER_COLLECTION).doc();
+        await documentRef.set({
+            name: name,
+            org: org
+        });
+
+        // Send response with status 200
+        res.status(200).send({ id: documentRef.id });
+
+        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); // FIXME should change this to be ID 
+
+        orgSnapshot.forEach(async (doc) => {
+            // add reviewer document to the subcollection named reviewers within the org collection
+            const orgId = doc.id;
+            const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection("reviewers").doc(documentRef.id);
+            await reviewerRef.set({
+                name: name,
+                reviewerId: documentRef.id
+            });
+        });
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+});
+
+
+
 // const MAIN_COLLECTION_NAME = 'orgs'
 
 // // Define your API function to add org

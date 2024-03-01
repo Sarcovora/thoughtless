@@ -23,6 +23,8 @@ import NavigationBar from './Navigation';
 
 import { columns, users } from './data'; // Import user data
 import RubricRatings from './RubricRatings';
+import QuestionsWithResponse from './QuestionsWithResponse';
+import CardPadding from './CardPadding';
 
 const statusColorMap = {
     active: 'success',
@@ -42,7 +44,7 @@ const ProfileModal = (selectedUser) => {
                         <div className="mx-auto w-full max-w-8xl grow lg:flex xl:px-2">
                             {/* left side */}
                             {/* <div className="flex-1 xl:flex"> */}
-                            <div className="flex-1 xl:flex">
+                            <div className="flex-1 xl:flex flex-col overflow-auto">
                                 <div className="px-4 py-6 sm:px-6 lg:pl-8 xl:flex-1 xl:pl-6">
                                     <Card>
                                         <CardHeader className="flex gap-3 justify-center flex-col">
@@ -124,7 +126,17 @@ const ProfileModal = (selectedUser) => {
                                             </Link>
                                         </CardFooter>
                                     </Card>
+
                                 </div>
+                                <QuestionsWithResponse selectedUser={selectedUser} questionId={1} />
+                                <QuestionsWithResponse selectedUser={selectedUser} questionId={2} />
+                                <QuestionsWithResponse selectedUser={selectedUser} questionId={3} />
+                                <QuestionsWithResponse selectedUser={selectedUser} questionId={4} />
+                                <QuestionsWithResponse selectedUser={selectedUser} questionId={5} />
+                                <QuestionsWithResponse selectedUser={selectedUser} questionId={6} />
+
+                                <CardPadding />
+
                             </div>
 
                             {/* right side */}

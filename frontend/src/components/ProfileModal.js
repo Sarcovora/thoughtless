@@ -84,6 +84,7 @@ const ProfileModal = (selectedUser) => {
                                                 {selectedUser.team}
                                             </p> */}
 
+
                                             <Divider className="mb-3" />
 
                                             <p className="mb-1 font-semibold">

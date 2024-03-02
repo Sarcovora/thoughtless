@@ -14,6 +14,7 @@ const db = require("./firebase");
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+app.use(cors()); 
 
 const ORG_COLLECTION = 'orgs'
 const REVIEWER_COLLECTION = 'reviewers'

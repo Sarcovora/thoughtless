@@ -152,7 +152,7 @@ app.post("/app", async(req,res) => {
 }); 
 
 // ALTERNATE GET using params instead of body 
-app.get("/apps/:org", /*auth,*/ async (req, res) => {
+app.get("/apps/:org", cors(), async (req, res) => {
 
     try {
       const org = req.params.org;

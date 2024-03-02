@@ -132,7 +132,7 @@ app.post("/reviewer", cors(), async (req, res) => {
 //POST : Endpoint to post a new app 
 app.post("/app", cors(), async(req,res) => {
     try {
-        const { name, org, responses } = req.body;
+        const { name, email, org, responses } = req.body;
 
         const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); // FIXME should change this to be ID 
 
@@ -142,6 +142,8 @@ app.post("/app", cors(), async(req,res) => {
             const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc();
             await appRef.set({
                 name: name,
+                email: email, 
+                status: "Incomplete",
                 responses: responses
             });
             res.status(200).send({ id: appRef.id });
@@ -266,6 +268,49 @@ app.get("/feedback/:org/:app/:reviewer", cors(), async (req, res) => {
         const commentsArray = appData.reviewers[reviewer].comments || [];
 
         res.status(200).json({ feedbackArray, commentsArray });
+    } catch (error) {
+        console.error("Error retrieving feedback:", error);
+        res.status(500).send(error.message);
+    }
+});
+
+//GET for responses 
+app.get("/responses/:org/:app/", cors(), async (req, res) => {
+    const org = req.params.org;
+    const app = req.params.app;  
+
+    try {
+        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); //FIXME
+        if (orgSnapshot.empty) {
+            console.log('No matching documents.');
+            res.status(404).send('No matching documents.');
+            return;
+        }
+
+        const orgId = orgSnapshot.docs[0].id;
+        const appSnapshot = await db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).where("name", "==", app).get();
+
+        if (appSnapshot.empty) {
+            console.log('No matching app documents.');
+            res.status(404).send('No matching documents.');
+            return;
+        }
+
+        const appId = appSnapshot.docs[0].id;
+        const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc(appId);
+
+        const appDoc = await appRef.get();
+        if (!appDoc.exists) {
+            console.log('App document not found.');
+            res.status(404).send('App document not found.');
+            return;
+        }
+
+        const appData = appDoc.data();
+
+        const responseArray = appData.responses;
+
+        res.status(200).json(responseArray);
     } catch (error) {
         console.error("Error retrieving feedback:", error);
         res.status(500).send(error.message);

@@ -22,7 +22,7 @@ const APPS_COLLECTION = 'apps'
 const orgCollectionRef = db.collection(ORG_COLLECTION)
 
 // Endpoint to make a new org
-app.post("/org", async (req, res) => {
+app.post("/org", cors(), async (req, res) => {
     try {
       const { name, questions } = req.body;
   
@@ -51,7 +51,7 @@ app.post("/org", async (req, res) => {
   }); 
 
 // GET: Endpoint to retrieve all orgs
-app.get("/orgs", async (req, res) => {
+app.get("/orgs", cors(), async (req, res) => {
     try {
         const snapshot = await db.collection(ORG_COLLECTION).get();
 
@@ -76,7 +76,7 @@ app.get("/orgs", async (req, res) => {
 });
 
 // GET: List of questions for an org
-app.get("/questions/:org", async(req, res) => {
+app.get("/questions/:org", cors(), async(req, res) => {
     try {
         const org = req.params.org;
 
@@ -98,7 +98,7 @@ app.get("/questions/:org", async(req, res) => {
 })
 
 // POST: Endpoint to make a new reviewer and assign them to their org ... 
-app.post("/reviewer", async (req, res) => {
+app.post("/reviewer", cors(), async (req, res) => {
     try {
         const { name, org } = req.body;
 
@@ -129,7 +129,7 @@ app.post("/reviewer", async (req, res) => {
 });
 
 //POST : Endpoint to post a new app 
-app.post("/app", async(req,res) => {
+app.post("/app", cors(), async(req,res) => {
     try {
         const { name, org, responses } = req.body;
 
@@ -183,7 +183,7 @@ app.get("/apps/:org", cors(), async (req, res) => {
 })
 
 // POST: push feedback from a reviewer to an app
-app.post("/feedback", async (req, res) => {
+app.post("/feedback", cors(), async (req, res) => {
     const { org, reviewer, app, feedback_array, comments_array } = req.body;
 
     try {
@@ -222,7 +222,7 @@ app.post("/feedback", async (req, res) => {
 });
 
 //GET for feedback 
-app.get("/feedback/:org/:app/:reviewer", async (req, res) => {
+app.get("/feedback/:org/:app/:reviewer", cors(), async (req, res) => {
     const org = req.params.org;
     const reviewer = req.params.reviewer; 
     const app = req.params.app;  

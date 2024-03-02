@@ -66,23 +66,24 @@ const ProfileModal = (selectedUser) => {
                                                 </p>
                                             </div>
                                         </CardHeader>
-                                        <Divider />
+                                        {/* <Divider /> */}
                                         <CardBody>
-                                            <p className="mb-1 font-semibold">
+                                            {/* <p className="mb-1 font-semibold">
                                                 Role:
                                             </p>
                                             <p className="mb-3">
                                                 {selectedUser.role}
-                                            </p>
+                                            </p> */}
 
-                                            <Divider className="mb-3" />
+                                            {/* <Divider className="mb-3" />
 
                                             <p className="mb-1 font-semibold">
                                                 Team:
                                             </p>
                                             <p className="mb-3">
                                                 {selectedUser.team}
-                                            </p>
+                                            </p> */}
+
 
                                             <Divider className="mb-3" />
 
@@ -105,7 +106,7 @@ const ProfileModal = (selectedUser) => {
                                         </CardBody>
                                         <Divider />
                                         <CardFooter>
-                                            <Link
+                                            {/* <Link
                                                 isExternal
                                                 showAnchorIcon
                                                 href={
@@ -123,7 +124,7 @@ const ProfileModal = (selectedUser) => {
                                                 }
                                             >
                                                 Github
-                                            </Link>
+                                            </Link> */}
                                         </CardFooter>
                                     </Card>
 

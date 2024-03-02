@@ -182,6 +182,37 @@ app.get("/apps", async(req, res)=> {
     }
 })
 
+// ALTERNATE GET using params instead of body 
+app.get("/apps/:org", /*auth,*/ async (req, res) => {
+
+    try {
+      const org = req.params.org;
+
+      const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); // FIXME should change this to be ID 
+
+      if (orgSnapshot.empty) {
+          console.log('No matching documents.');
+          res.status(404).send('No matching documents.');
+          return;
+      }  
+
+      // Access the apps subcollection within the org document
+      const orgData = orgSnapshot.docs[0].data(); // Assuming there's only one org with this name
+      const appsCollectionRef = db.collection(ORG_COLLECTION).doc(orgSnapshot.docs[0].id).collection(APPS_COLLECTION);
+      
+      // Retrieve all apps from the apps subcollection
+      const appsSnapshot = await appsCollectionRef.get();
+      const apps = [];
+      appsSnapshot.forEach((doc) => {
+          apps.push(doc.data());
+      });
+
+      res.status(200).send(apps);
+  } catch (error) {
+      res.status(500).send(error.message);
+  }
+})
+
 // POST: push feedback from a reviewer to an app
 app.post("/feedback", async (req, res) => {
     const { org, reviewer, app, feedback_array, comments_array } = req.body;

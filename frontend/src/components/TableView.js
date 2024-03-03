@@ -150,6 +150,7 @@ export default function TableView() {
                             className="py-20"
                             size="lg"
                             aria-label="Loading..."
+                            color='default'
                         />
                     </div>
                 </MaxWidthWrapper>

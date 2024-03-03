@@ -41,12 +41,16 @@ const statusColorMap = {
     vacation: 'warning',
 };
 
-export default function TableView() {;
-    const backendURL = 'https://thoughtless-backend.vercel.app/apps';
+export default function TableView() {
+    const backendURL = 'https://thoughtless-backend.vercel.app';
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedUser, setSelectedUser] = useState(null);
+
     const [applicants, setApplicants] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingApps, setIsLoadingApps] = useState(true);
+
+    const [questions, setQuestions] = useState(null);
+    // const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
 
     const handleUserClick = (user) => {
         onOpen();
@@ -55,32 +59,39 @@ export default function TableView() {;
 
     useEffect(() => {
         getApps();
+        getQuestions();
     }, []);
 
     function getApps() {
-        const fetchURL = `${backendURL}/tpeo`;
-        // console.log(fetchURL); FIXME
+        // console.log('fetching apps');
+        const fetchURL = `${backendURL}/apps/TPEO`;
         fetch(fetchURL, {
             method: 'GET', // Make sure to use the correct HTTP method
-            // body: JSON.stringify({
-            //     org: "joe's club",
-            // }),
         })
             .then((response) => response.json())
             .then((data) => {
-                // console.log(data);
                 setApplicants(data);
-                // console.log(applicants);
-                setIsLoading(false);
+                // console.log(applicants)
+                setIsLoadingApps(false);
             });
-        // .catch((error) => console.error('Error fetching data:', error));
+        // console.log(applicants);
+    }
+
+    function getQuestions() {
+        const fetchURL = `${backendURL}/questions/TPEO`;
+        fetch(fetchURL, {
+            method: 'GET', // Make sure to use the correct HTTP method
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                setQuestions(data);
+                // console.log(questions);
+                // console.log(data);
+                // setIsLoadingQuestions(false);
+            });
     }
 
     const renderCell = React.useCallback((user, columnKey) => {
-        // console.log("I'm second");
-        // console.log(applicants);
-        console.log("These are the columns:")
-        console.log(columnKey)
         const cellValue = user[columnKey];
 
         switch (columnKey) {
@@ -129,7 +140,7 @@ export default function TableView() {;
     // console.log('from here');
     // console.log(applicants);
 
-    if (isLoading && applicants === null) {
+    if (isLoadingApps && applicants === null) {
         return (
             <>
                 <NavigationBar />
@@ -144,8 +155,9 @@ export default function TableView() {;
                 </MaxWidthWrapper>
             </>
         );
-    } else if (!isLoading && applicants) {
-        console.log(applicants);
+    } else if (!isLoadingApps && applicants) {
+        // console.log(questions)
+        // console.log(applicants);
         return (
             <>
                 <NavigationBar />
@@ -199,6 +211,9 @@ export default function TableView() {;
                                             {selectedUser ? (
                                                 <ProfileModal
                                                     selectedUser={selectedUser}
+                                                    questions={questions}
+                                                    // isLoadingQuestions={isLoadingQuestions}
+                                                    // isLoadingQuestions={false}
                                                 />
                                             ) : (
                                                 'No user selected'
@@ -229,8 +244,6 @@ export default function TableView() {;
             </>
         );
     } else {
-        return (
-            <p> Something went wrong </p>
-        )
+        return <p> Something went wrong </p>;
     }
 }

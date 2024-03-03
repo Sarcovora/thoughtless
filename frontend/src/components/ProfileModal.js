@@ -16,7 +16,8 @@ import {
     Accordion,
     AccordionItem,
     Slider,
-	Textarea,
+    Textarea,
+    CircularProgress,
 } from '@nextui-org/react';
 import MaxWidthWrapper from './MaxWidthWrapper';
 import NavigationBar from './Navigation';
@@ -32,8 +33,30 @@ const statusColorMap = {
     vacation: 'warning',
 };
 
-const ProfileModal = (selectedUser) => {
-    selectedUser = selectedUser.selectedUser;
+const ProfileModal = ({ selectedUser, questions }) => {
+    const backendURL = 'https://thoughtless-backend.vercel.app';
+    const org = 'TPEO';
+    const reviewer = 'Ben';
+    // console.log('selectedUser', selectedUser.name);
+
+    const [feedback, setFeedback] = useState(null);
+    const [isLoadingFeedback, setIsLoadingFeedback] = useState(true);
+
+    useEffect(() => {
+        getFeedback();
+    }, []);
+
+    function getFeedback() {
+        const fetchURL = `${backendURL}/feedback/${org}/${selectedUser.name}/${reviewer}`;
+        fetch(fetchURL, {
+            method: 'GET',
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                setFeedback(data);
+                setIsLoadingFeedback(false);
+            });
+    }
 
     return (
         <>
@@ -43,7 +66,6 @@ const ProfileModal = (selectedUser) => {
                     <div className="flex-1 justify-between flex flex-col h-[calc(100vh-3.5rem)]">
                         <div className="mx-auto w-full max-w-8xl grow lg:flex xl:px-2">
                             {/* left side */}
-                            {/* <div className="flex-1 xl:flex"> */}
                             <div className="flex-1 xl:flex flex-col overflow-auto">
                                 <div className="px-4 py-6 sm:px-6 lg:pl-8 xl:flex-1 xl:pl-6">
                                     <Card>
@@ -83,7 +105,6 @@ const ProfileModal = (selectedUser) => {
                                             <p className="mb-3">
                                                 {selectedUser.team}
                                             </p> */}
-
 
                                             <Divider className="mb-3" />
 
@@ -127,46 +148,44 @@ const ProfileModal = (selectedUser) => {
                                             </Link> */}
                                         </CardFooter>
                                     </Card>
-
                                 </div>
-                                <QuestionsWithResponse selectedUser={selectedUser} questionId={1} />
-                                <QuestionsWithResponse selectedUser={selectedUser} questionId={2} />
-                                <QuestionsWithResponse selectedUser={selectedUser} questionId={3} />
-                                <QuestionsWithResponse selectedUser={selectedUser} questionId={4} />
-                                <QuestionsWithResponse selectedUser={selectedUser} questionId={5} />
-                                <QuestionsWithResponse selectedUser={selectedUser} questionId={6} />
+                                {questions.map((question, index) => (
+                                    <QuestionsWithResponse
+                                        selectedUser={selectedUser}
+                                        questions={questions}
+                                        questionId={index}
+                                    />
+                                ))}
 
                                 <CardPadding />
-
                             </div>
 
                             {/* right side */}
-                            {/* <div className="shrink-0 flex-[0.75] border-t border-gray-200 lg:w-96 lg:border-l lg:border-t0"> */}
-                            <div className="shrink-0 flex-[0.4] border-t border-gray-200 lg:w-96 lg:border-l lg:border-t0">
-                                <Accordion selectionMode="multiple">
-                                    <AccordionItem
-                                        key="1"
-                                        aria-label="Question 1"
-                                        title="Question 1"
-                                    >
-                                        <RubricRatings />
-                                    </AccordionItem>
-                                    <AccordionItem
-                                        key="2"
-                                        aria-label="Question 2"
-                                        title="Question 2"
-                                    >
-                                        <RubricRatings />
-                                    </AccordionItem>
-                                    <AccordionItem
-                                        key="3"
-                                        aria-label="Question 3"
-                                        title="Question 3"
-                                    >
-                                        <RubricRatings />
-                                    </AccordionItem>
-                                </Accordion>
-                            </div>
+                            {isLoadingFeedback ? (
+                                <div className="shrink-0 flex-[0.4] lg:w-96 flex items-center justify-center">
+                                    <CircularProgress
+                                        className="py-20"
+                                        size="lg"
+                                        aria-label="Loading..."
+                                    />
+                                </div>
+                            ) : (
+                                <div className="shrink-0 flex-[0.4] lg:w-96">
+                                    <Accordion selectionMode="multiple">
+                                        {questions.map((question, index) => (
+                                            <AccordionItem
+                                                key={index}
+                                                aria-label={`Question ${
+                                                    index + 1
+                                                }`}
+                                                title={`Question ${index + 1}`}
+                                            >
+                                                <RubricRatings feedback={feedback} questionId={index} reviewer={reviewer} org={org} applicant={selectedUser.name}/>
+                                            </AccordionItem>
+                                        ))}
+                                    </Accordion>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </>

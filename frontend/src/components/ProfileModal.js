@@ -174,6 +174,7 @@ const ProfileModal = ({ selectedUser, questions }) => {
                                         className="py-20"
                                         size="lg"
                                         aria-label="Loading..."
+                                        color="default"
                                     />
                                 ) : (
                                     // Loaded State

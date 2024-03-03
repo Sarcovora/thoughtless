@@ -63,8 +63,8 @@ const ProfileModal = ({ selectedUser, questions }) => {
             {/* <MaxWidthWrapper> */}
             {selectedUser ? (
                 <>
-                    <div className="flex-1 justify-between flex flex-col h-[calc(100vh-3.5rem)]">
-                        <div className="mx-auto w-full max-w-8xl grow lg:flex xl:px-2">
+                    <div className="flex-1 justify-between flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
+                        <div className="mx-auto w-full max-w-8xl grow lg:flex xl:px-2 overflow-auto">
                             {/* left side */}
                             <div className="flex-1 xl:flex flex-col overflow-auto">
                                 <div className="px-4 py-6 sm:px-6 lg:pl-8 xl:flex-1 xl:pl-6">
@@ -161,31 +161,55 @@ const ProfileModal = ({ selectedUser, questions }) => {
                             </div>
 
                             {/* right side */}
-                            {isLoadingFeedback ? (
-                                <div className="shrink-0 flex-[0.4] lg:w-96 flex items-center justify-center">
+                            <div
+                                className={`shrink-0 flex-[0.4] lg:w-96 ${
+                                    isLoadingFeedback
+                                        ? 'flex items-center justify-center'
+                                        : ''
+                                } overflow-y-auto px-6`}
+                            >
+                                {isLoadingFeedback ? (
+                                    // Loading state
                                     <CircularProgress
                                         className="py-20"
                                         size="lg"
                                         aria-label="Loading..."
                                     />
-                                </div>
-                            ) : (
-                                <div className="shrink-0 flex-[0.4] lg:w-96">
-                                    <Accordion selectionMode="multiple">
-                                        {questions.map((question, index) => (
-                                            <AccordionItem
-                                                key={index}
-                                                aria-label={`Question ${
-                                                    index + 1
-                                                }`}
-                                                title={`Question ${index + 1}`}
-                                            >
-                                                <RubricRatings feedback={feedback} questionId={index} reviewer={reviewer} org={org} applicant={selectedUser.name}/>
-                                            </AccordionItem>
-                                        ))}
-                                    </Accordion>
-                                </div>
-                            )}
+                                ) : (
+                                    // Loaded State
+                                    <>
+                                        <h1 className="font-bold text-center">
+                                            Review & Comment
+                                        </h1>
+                                        <Divider className="my-4" />
+                                        <Accordion selectionMode="multiple">
+                                            {questions.map(
+                                                (question, index) => (
+                                                    <AccordionItem
+                                                        key={index}
+                                                        aria-label={`Question ${
+                                                            index + 1
+                                                        }`}
+                                                        title={`Question ${
+                                                            index + 1
+                                                        }`}
+                                                    >
+                                                        <RubricRatings
+                                                            feedback={feedback}
+                                                            questionId={index}
+                                                            reviewer={reviewer}
+                                                            org={org}
+                                                            applicant={
+                                                                selectedUser.name
+                                                            }
+                                                        />
+                                                    </AccordionItem>
+                                                ),
+                                            )}
+                                        </Accordion>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </>

@@ -12,22 +12,11 @@ export default function NavigationBar() {
     return (
         <Navbar maxWidth="full">
             <NavbarBrand>
-                {/* <p className="font-bold text-inherit">thoughtless.</p> */}
-                <Link to="/" className="nav-link font-bold text-inherit">
-                    thoughtless.
+                <Link to="/" className='flex'>
+                    <p className="nav-link font-bold text-inherit">thoughtless.</p>
                 </Link>
             </NavbarBrand>
             <NavbarContent className="hidden sm:flex gap-4" justify="center">
-                {/* <NavbarItem>
-			<Button as={Link} to="/profileview" variant="flat" className="nav-button">
-			  Profile View
-			</Button>
-		  </NavbarItem> */}
-                {/* <NavbarItem>
-			<Button as={Link} to="/tableview" variant="flat" className="nav-button">
-			  Table View
-			</Button>
-		  </NavbarItem> */}
             </NavbarContent>
             <NavbarContent justify="end">
                 <NavbarItem isActive className="pr-4">

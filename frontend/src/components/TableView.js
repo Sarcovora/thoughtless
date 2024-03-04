@@ -150,7 +150,7 @@ export default function TableView() {
                             className="py-20"
                             size="lg"
                             aria-label="Loading..."
-                            color='default'
+                            color="default"
                         />
                     </div>
                 </MaxWidthWrapper>
@@ -198,9 +198,17 @@ export default function TableView() {
                             isOpen={isOpen}
                             onOpenChange={onOpenChange}
                             scrollBehavior={'inside'}
-                            size="full"
+                            size="5xl"
                         >
-                            <ModalContent>
+                            <ModalContent
+                                style={{
+                                    margin: '0.5rem',
+                                    width: 'calc(100% - 2.5rem)',
+                                    height: 'calc(100% - 3rem)',
+                                    maxWidth: 'none',
+                                    maxHeight: 'none',
+                                }}
+                            >
                                 {(onClose) => (
                                     <>
                                         <ModalHeader className="flex flex-col gap-1">

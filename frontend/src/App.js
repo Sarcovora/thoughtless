@@ -5,6 +5,7 @@ import TableView from "./components/TableView";
 import ProfileView from "./components/ProfileView";
 import Home from "./components/Home";
 import Login from "./components/Login";
+import Signup from "./components/Signup";
 
 import {
   Navbar,
@@ -25,6 +26,7 @@ function App() {
             <Route path="/tableview" element={<TableView/> } />
             <Route path="/profileview" element={<ProfileView/> } />
             <Route path="/login" element={<Login/> } />
+            <Route path="/signup" element={<Signup/> } />
         </Routes>
       </Router>
     </div>

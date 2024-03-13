@@ -108,17 +108,6 @@ export default function TableView() {
                         ></User>
                     </div>
                 );
-            // case 'role':
-            //     return (
-            //         <div className="flex flex-col items-start">
-            //             <p className="text-bold text-sm capitalize">
-            //                 {cellValue}
-            //             </p>
-            //             <p className="text-bold text-sm capitalize text-default-400">
-            //                 {/* {user.team} */}
-            //             </p>
-            //         </div>
-            //     );
             case 'status':
                 return (
                     <div className="flex flex-col items-start">
@@ -136,9 +125,6 @@ export default function TableView() {
                 return cellValue;
         }
     }, []);
-
-    // console.log('from here');
-    // console.log(applicants);
 
     if (isLoadingApps && applicants === null) {
         return (
@@ -166,14 +152,7 @@ export default function TableView() {
                     <Table aria-label="Table of all applicant information">
                         <TableHeader columns={columns}>
                             {(column) => (
-                                <TableColumn
-                                    key={column.uid}
-                                    // align={
-                                    //     column.uid === 'actions'
-                                    //         ? 'center'
-                                    //         : 'start'
-                                    // }
-                                >
+                                <TableColumn key={column.uid}>
                                     {column.name}
                                 </TableColumn>
                             )}
@@ -221,29 +200,11 @@ export default function TableView() {
                                                 <ProfileModal
                                                     selectedUser={selectedUser}
                                                     questions={questions}
-                                                    // isLoadingQuestions={isLoadingQuestions}
-                                                    // isLoadingQuestions={false}
                                                 />
                                             ) : (
                                                 'No user selected'
                                             )}
                                         </ModalBody>
-                                        {/* <ModalFooter> */}
-                                        {/* <Button
-                                            color="danger"
-                                            variant="light"
-                                            onPress={onClose}
-                                        >
-                                            Close
-                                        </Button> */}
-                                        {/* <Button
-                                            size='md'
-                                            onPress={onClose}
-                                            className='bg-black text-white'
-                                        >
-                                            Done
-                                        </Button> */}
-                                        {/* </ModalFooter> */}
                                     </>
                                 )}
                             </ModalContent>

@@ -32,6 +32,7 @@ export default function Signup() {
                     Sign Up
                 </h1>
                 <p className="py-2 font-light">Welcome to the family!</p>
+                <Spacer y={7} />
                 <div className="flex">
                     <Input
                         placeholder="Your first name"

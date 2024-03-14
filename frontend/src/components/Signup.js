@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Spacer, Button, Input, Row, Checkbox } from '@nextui-org/react';
 import { EyeFilledIcon } from './EyeFilledIcon';
 import { EyeSlashFilledIcon } from './EyeSlashFilledIcon';
-import MaxWidthWrapper from './MaxWidthWrapper';
+import TwoThirdsWidthWrapper from './twoThirdsWidthWrapper';
 import NavigationBar from './Navigation';
 
 export default function Signup() {
@@ -27,7 +27,7 @@ export default function Signup() {
     return (
         <div>
             <NavigationBar />
-            <MaxWidthWrapper>
+            <TwoThirdsWidthWrapper>
                 <h1 className="text-4xl font-bold text-center mt-10">
                     Sign Up
                 </h1>
@@ -72,7 +72,7 @@ export default function Signup() {
                     }
                     type={isVisible ? 'text' : 'password'}
                 />
-            </MaxWidthWrapper>
+            </TwoThirdsWidthWrapper>
         </div>
     );
 }

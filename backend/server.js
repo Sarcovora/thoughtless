@@ -25,23 +25,28 @@ const orgCollectionRef = db.collection(ORG_COLLECTION)
 // Endpoint to make a new org
 app.post("/org", cors(), async (req, res) => {
     try {
-      const { name, questions } = req.body;
+      const { name } = req.body;
   
       const documentRef = db.collection(ORG_COLLECTION).doc();
       await documentRef.set({
         name: name,
-        questions: questions
+        questions: [], 
+        hyperlinks: [], 
+        id_info: []
       });
   
       const reviewerCollectionRef = documentRef.collection(REVIEWER_COLLECTION);
-      await reviewerCollectionRef.add({
+      const reviewerDocRef = await reviewerCollectionRef.add({
         name: 'Joe'
       });
-  
+
+      await reviewerDocRef.delete(); // Delete the document after creation
+
       const appCollectionRef = documentRef.collection(APPS_COLLECTION);
-      await appCollectionRef.add({
+      const appDocRef = await appCollectionRef.add({
         applicant: 'Bob'
       });
+      await appDocRef.delete();
   
       // Sending a successful response with the ID of the newly created org
       res.status(201).send({ id: documentRef.id });
@@ -50,6 +55,40 @@ app.post("/org", cors(), async (req, res) => {
       res.status(500).send(error.message);
     }
   }); 
+
+// POST: add questions, hyperlinks, and id_info
+app.post("/org/details", cors(), async (req, res) => {
+    try {
+        const { org, questions, hyperlinks, id_info } = req.body;
+
+        // Query Firestore to find the organization document by name
+        const querySnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get();
+
+        // Check if there's a matching document
+        if (querySnapshot.empty) {
+            console.log('No matching document.');
+            res.status(404).send('No matching document.');
+            return;
+        }  
+
+        // There should only be one document matching the name, so we take the first one
+        const documentRef = querySnapshot.docs[0].ref;
+
+        // Update the organization document with the provided details
+        await documentRef.update({
+            questions: questions,
+            hyperlinks: hyperlinks,
+            id_info: id_info
+        });
+
+        // Sending a successful response
+        res.status(200).send("Organization details updated successfully");
+    } catch (error) {
+        // Sending an error response in case of an exception
+        res.status(500).send(error.message);
+    }
+});
+
 
 // GET: Endpoint to retrieve all orgs
 app.get("/orgs", cors(), async (req, res) => {
@@ -132,7 +171,7 @@ app.post("/reviewer", cors(), async (req, res) => {
 //POST : Endpoint to post a new app 
 app.post("/app", cors(), async(req,res) => {
     try {
-        const { name, email, org, responses } = req.body;
+        const { name, id_info, org, responses, hyperlinks } = req.body;
 
         const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); // FIXME should change this to be ID 
 
@@ -142,8 +181,9 @@ app.post("/app", cors(), async(req,res) => {
             const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc();
             await appRef.set({
                 name: name,
-                email: email, 
                 status: "Incomplete",
+                id_info: id_info, 
+                hyperlinks: hyperlinks,
                 responses: responses
             });
             res.status(200).send({ id: appRef.id });
@@ -153,6 +193,40 @@ app.post("/app", cors(), async(req,res) => {
         res.status(500).send(error.message)
     }
 }); 
+
+//POST : Endpoint to post many new apps
+app.post("/apps", cors(), async (req, res) => {
+    try {
+        const apps = req.body; // Assuming req.body is an array of apps
+
+        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "in", apps.map(app => app.org)).get(); // FIXME should change this to be ID 
+
+        const promises = [];
+
+        orgSnapshot.forEach(async (orgDoc) => {
+            const orgId = orgDoc.id;
+            
+            apps.filter(app => app.org === orgDoc.data().name).forEach(async (app) => {
+                const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc();
+                promises.push(
+                    appRef.set({
+                        name: app.name,
+                        status: "Incomplete",
+                        id_info: app.id_info,
+                        hyperlinks: app.hyperlinks,
+                        responses: app.responses
+                    })
+                );
+            });
+        });
+
+        await Promise.all(promises);
+
+        res.status(200).send({ message: "Apps added successfully" });
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+});
 
 // ALTERNATE GET using params instead of body 
 app.get("/apps/:org", cors(), async (req, res) => {
@@ -268,49 +342,6 @@ app.get("/feedback/:org/:app/:reviewer", cors(), async (req, res) => {
         const commentsArray = appData.reviewers[reviewer].comments || [];
 
         res.status(200).json({ feedbackArray, commentsArray });
-    } catch (error) {
-        console.error("Error retrieving feedback:", error);
-        res.status(500).send(error.message);
-    }
-});
-
-//GET for responses 
-app.get("/responses/:org/:app/", cors(), async (req, res) => {
-    const org = req.params.org;
-    const app = req.params.app;  
-
-    try {
-        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); //FIXME
-        if (orgSnapshot.empty) {
-            console.log('No matching documents.');
-            res.status(404).send('No matching documents.');
-            return;
-        }
-
-        const orgId = orgSnapshot.docs[0].id;
-        const appSnapshot = await db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).where("name", "==", app).get();
-
-        if (appSnapshot.empty) {
-            console.log('No matching app documents.');
-            res.status(404).send('No matching documents.');
-            return;
-        }
-
-        const appId = appSnapshot.docs[0].id;
-        const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc(appId);
-
-        const appDoc = await appRef.get();
-        if (!appDoc.exists) {
-            console.log('App document not found.');
-            res.status(404).send('App document not found.');
-            return;
-        }
-
-        const appData = appDoc.data();
-
-        const responseArray = appData.responses;
-
-        res.status(200).json(responseArray);
     } catch (error) {
         console.error("Error retrieving feedback:", error);
         res.status(500).send(error.message);

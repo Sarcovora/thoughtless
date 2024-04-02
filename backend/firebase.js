@@ -7,17 +7,26 @@ const creds = JSON.parse(process.env.FIREBASE_CREDENTIALS);
 // Firebase authentication
 admin.initializeApp({
   credential: admin.credential.cert(creds),
-  databaseURL: "//https://thoughtless-backend.firebaseio.com"
+  databaseURL: "//https://thoughtless-backend.firebaseio.com",
+  storageBucket: "gs://thoughtless-backend.appspot.com"
 });
+
+const multer = require("multer");
+const { getStorage, ref, getDownloadURL, uploadBytesResumable } = require("firebase-admin/storage");
 
 const express = require("express");
 const app = express();
 const db = admin.firestore();
+const auth = admin.auth(); 
+const storage = getStorage(); 
+const upload = multer({storage: multer.memoryStorage()}); 
+// https://www.youtube.com/watch?v=CgMD6VykQXQ
 
 const cors = require("cors");
 app.use( cors({ origin:true }));
 
-module.exports = db; 
+module.exports = {db, auth, storage, upload}; 
+// module.exports = db
 
 // import { initializeApp } from 'firebase/app';
 // import { getFirestore, collection } from 'firebase/firestore';

@@ -1,6 +1,7 @@
 // Importing required modules
 const cors = require("cors");
-const { getFirestore, collection, addDoc } = require("firebase/firestore");
+// const { getStorage, ref, getDownloadURL, uploadBytesResumable } = require("firebase/storage");
+
 
 // Creating an instance of Express
 const express = require('express');
@@ -10,7 +11,12 @@ const app = express();
 require("dotenv").config();
 
 // Importing the Firestore database instance from firebase.js
-const db = require("./firebase");
+const firebaseModules = require("./firebase");
+const db = firebaseModules.db
+const storage = firebaseModules.storage
+const upload = firebaseModules.upload
+// const ref = firebaseModules.ref
+// const 
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -32,7 +38,8 @@ app.post("/org", cors(), async (req, res) => {
         name: name,
         questions: [], 
         hyperlinks: [], 
-        id_info: []
+        id_info: [], 
+        file: ""
       });
   
       const reviewerCollectionRef = documentRef.collection(REVIEWER_COLLECTION);
@@ -140,9 +147,9 @@ app.get("/questions/:org", cors(), async(req, res) => {
 // POST: Endpoint to make a new reviewer and assign them to their org ... 
 app.post("/reviewer", cors(), async (req, res) => {
     try {
-        const { name, org } = req.body;
+        const { uid, name, org } = req.body;
 
-        const documentRef = db.collection(REVIEWER_COLLECTION).doc();
+        const documentRef = db.collection(REVIEWER_COLLECTION).doc(uid);
         await documentRef.set({
             name: name,
             org: org
@@ -347,6 +354,102 @@ app.get("/feedback/:org/:app/:reviewer", cors(), async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+
+app.post("/file", upload.single("filename"), cors(), async (req, res) => {
+    try {
+        const dateTime = giveCurrentDateTime();
+
+        const bucket = storage.bucket(); // Get a reference to the default storage bucket
+
+        const storageRef = bucket.file(`files/${req.file.originalname + "       " + dateTime}`);
+
+        // Create file metadata including the content type
+        const metadata = {
+            contentType: req.file.mimetype,
+        };
+
+        // Upload the file in the bucket storage
+        await storageRef.save(req.file.buffer, {
+            metadata: metadata,
+            resumable: false // Disable resumable uploads for simplicity
+        });
+
+        // Grab the public url
+        const downloadURL = await storageRef.getSignedUrl({
+            action: 'read',
+            expires: '03-25-2025' // Adjust the expiration date as needed
+        });
+
+        // post the download URL for the org 
+        const { org } = req.body;
+
+        // Query Firestore to find the organization document by name
+        const querySnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get();
+
+        // Check if there's a matching document
+        if (querySnapshot.empty) {
+            console.log('No matching document for org ', org);
+            res.status(404).send('No matching document for org');
+            return;
+        }  
+
+        // There should only be one document matching the name, so we take the first one
+        const documentRef = querySnapshot.docs[0].ref;
+
+        // Update the organization document with the provided details
+        await documentRef.update({
+            file: downloadURL[0],
+        });
+
+        console.log('File successfully uploaded.');
+
+        // Run Python script on the saved file
+        const spawn = require("child_process").spawn;
+        const pythonScript = './csv_to_json.py'; // Replace with the path to your Python script
+        const pythonProcess = spawn('python', [pythonScript])
+        console.log('req.file:', req.file);
+        // const pythonProcess = spawn('python', [pythonScript, req.file.buffer]);
+
+        // Pipe the file buffer to the Python script's standard input
+        pythonProcess.stdin.write(req.file.buffer);
+        pythonProcess.stdin.end();
+
+        // Capture output of the Python script
+        let output = '';
+        pythonProcess.stdout.on('data', (data) => {
+            output += data.toString();
+        });
+
+        pythonProcess.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        // Handle Python script completion
+        pythonProcess.on('close', (code) => {
+            console.log(`Python script exited with code ${code}`);
+            // Send the output back as response
+            res.send(output);
+        });
+
+        // return res.send({
+        //     message: 'file uploaded to firebase storage',
+        //     name: req.file.originalname,
+        //     type: req.file.mimetype,
+        //     downloadURL: downloadURL[0] // The getSignedUrl method returns an array of URLs
+        // });
+    } catch (error) {
+        return res.status(400).send(error.message);
+    }
+});
+
+// Helper function to give date and time for file names
+const giveCurrentDateTime = () => {
+    const today = new Date();
+    const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    const dateTime = date + ' ' + time;
+    return dateTime;
+}
 
 // Setting the port for the server to listen on
 const PORT = process.env.PORT || 4001;

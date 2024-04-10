@@ -6,6 +6,8 @@ const cors = require("cors");
 // Creating an instance of Express
 const express = require('express');
 const app = express();
+const admin = require('firebase-admin');
+
 
 // Loading environment variables from a .env file into process.env
 require("dotenv").config();
@@ -27,6 +29,45 @@ const REVIEWER_COLLECTION = 'reviewers'
 const APPS_COLLECTION = 'apps'
 
 const orgCollectionRef = db.collection(ORG_COLLECTION)
+
+// for hashing
+var pbkdf2 = require('pbkdf2')
+// JWT 
+const jwt = require('jsonwebtoken');
+const SALT = ";asf;klsadfllsfjalskdfjl";
+
+// Hash a password function using PBKDF2
+const hashPassword = (password) => {
+    const key = pbkdf2.pbkdf2Sync(password, SALT, 1000, 64, 'sha512');
+    return key.toString('hex');
+  };
+
+// Auth Middleware for non expiring tokens (check validity of token sent in)
+function authMiddleware(req, res, next) {
+    // Check if proper header exists
+    if (req.headers["authorization"]) {
+        // Split on space -> should return ["Bearer", "${token}"]
+        const headers = req.headers["authorization"].split(" ");
+        // Check if first argument is Bearer
+        if (headers.length === 2 && headers[0] === "Bearer") {
+        let token = headers[1];
+        try {
+            // verify the token
+            let decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+            // Set user object which can be accessed in the req in future
+            req.user = decodedToken.username;
+            next(); // Go to next function
+        } catch (e) {
+            return res.status(401).json({ msg: e.message });
+        }
+        } else {
+        return res.status(401).json({ msg: "invalid token" });
+        }
+    } else {
+        return res.status(401).json({ msg: "token was not found in header" });
+    }
+}
+  
 
 // Endpoint to make a new org
 app.post("/org", cors(), async (req, res) => {
@@ -147,16 +188,34 @@ app.get("/questions/:org", cors(), async(req, res) => {
 // POST: Endpoint to make a new reviewer and assign them to their org ... 
 app.post("/reviewer", cors(), async (req, res) => {
     try {
-        const { uid, name, org } = req.body;
+        const { username, password, org } = req.body;
 
-        const documentRef = db.collection(REVIEWER_COLLECTION).doc(uid);
-        await documentRef.set({
-            name: name,
+        const passHashed = hashPassword(password);
+
+        const check = await db.collection(REVIEWER_COLLECTION).doc(username).get();
+        if(check.exists) {
+            return res.status(400).json({ msg: "User exists" });
+        }
+
+        const reviewer = {
+            name: username, 
+            password: passHashed,
             org: org
-        });
+        }
+        console.log(reviewer)
+
+        const reviewerRef = db.collection(REVIEWER_COLLECTION); 
+        await reviewerRef.doc(username).set(reviewer)
+
+        const documentRef = db.collection(REVIEWER_COLLECTION).doc(username);
+        // await documentRef.set({
+        //     name: name,
+        //     org: org
+        // });
+
 
         // Send response with status 200
-        res.status(200).send({ id: documentRef.id });
+        // res.status(200).send({ id: documentRef.id });
 
         const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); // FIXME should change this to be ID 
 
@@ -165,13 +224,82 @@ app.post("/reviewer", cors(), async (req, res) => {
             const orgId = doc.id;
             const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection(REVIEWER_COLLECTION).doc(documentRef.id);
             await reviewerRef.set({
-                name: name,
-                reviewerId: documentRef.id
+                name: username,
+                reviewerId: documentRef.id,
+                apps: []
             });
             // res.status(200).send({ id: reviewerRef.id });
         });
+
+        // create new access token
+        // set expiry to 30s so you can show how it expires when call route
+        const accessToken = jwt.sign(
+            { "username": username },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: '24h' }
+        );  
+        // Send JWT Token back
+        res.json({
+            msg: "successfully created",
+            data: { username: username },
+            token: accessToken,
+        });
     } catch (error) {
         res.status(500).send(error.message)
+    }
+});
+
+// Verifies password + creates token
+app.post("/login", async (req, res) => {
+    const { username, password } = req.body;
+    const passHashed = hashPassword(password);
+    // Get the user
+    const check = await db.collection(REVIEWER_COLLECTION).doc(username).get();
+    // Check if user exists
+    if (!check.exists) {
+      return res.status(400).json({ msg: "User does not exist" });
+    }
+    // Cross reference the stored password with the incoming password (hashed)
+    const user = check.data();
+    let samePassword = passHashed === user.password;
+    if (samePassword) {
+      // user logged in correctly
+      const accessToken = jwt.sign(
+        { "username": username },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: '24h' }
+      );
+      return res.json({
+        msg: "successfully logged in",
+        data: { username: username },
+        token: accessToken,
+      });
+    } else {
+      return res.status(401).json({ msg: "Username or password was incorrect" });
+    }
+  });
+
+
+  // POST: add apps to review to a single reviewer 
+app.post("/assign", cors(), async (req, res) => {
+    try {
+        const { org, reviewer, apps } = req.body;
+
+        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); // FIXME should change this to be ID 
+
+        orgSnapshot.forEach(async (doc) => {
+            const orgId = doc.id;
+            const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection(REVIEWER_COLLECTION).doc(reviewer); //ASSUME this is ID 
+            await reviewerRef.update({
+                apps: apps
+            });
+        });
+
+        // Sending a successful response
+        res.status(200).send("Authorized applications updated successfully");
+    } catch (error) {
+        // Sending an error response in case of an exception
+        res.status(500).send(error.message);
     }
 });
 
@@ -196,6 +324,31 @@ app.post("/app", cors(), async(req,res) => {
             res.status(200).send({ id: appRef.id });
 
         });
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+}); 
+
+//POST : Endpoint to update an app's status 
+app.post("/update-status", cors(), async(req,res) => {
+    try {
+        const { app_id, status, org } = req.body;
+
+       // Retrieve the assigned app IDs from the reviewer's document
+       const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get();
+       if (orgSnapshot.empty) {
+           return res.status(404).send('Organization not found.');
+       }
+       const orgId = orgSnapshot.docs[0].id;
+
+       const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc(app_id);
+
+
+       await appRef.update({
+            status: status
+       })
+
+       res.status(200).send("Status updated successfully.");
     } catch (error) {
         res.status(500).send(error.message)
     }
@@ -264,6 +417,40 @@ app.get("/apps/:org", cors(), async (req, res) => {
   } catch (error) {
       res.status(500).send(error.message);
   }
+})
+
+// GET: Endpoint to retrieve apps assigned to a specific reviewer within an organization
+app.get("/assigned-apps/:org/:reviewerId", cors(), async (req, res) => {
+    try {
+        const { org, reviewerId } = req.params;
+
+        // Retrieve the assigned app IDs from the reviewer's document
+        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get();
+        if (orgSnapshot.empty) {
+            return res.status(404).send('Organization not found.');
+        }
+        const orgId = orgSnapshot.docs[0].id;
+
+        const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection(REVIEWER_COLLECTION).doc(reviewerId);
+        const reviewerDoc = await reviewerRef.get();
+        if (!reviewerDoc.exists) {
+            return res.status(404).send('Reviewer not found.');
+        }
+        const assignedAppIds = reviewerDoc.data().apps || [];
+
+        // Fetch the application details for the assigned application IDs
+        const appsCollectionRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION);
+        const appsQuerySnapshot = await appsCollectionRef.where(admin.firestore.FieldPath.documentId(), 'in', assignedAppIds).get();
+
+        let assignedApps = [];
+        appsQuerySnapshot.forEach(doc => {
+            assignedApps.push({ id: doc.id, ...doc.data() });
+        });
+
+        res.status(200).send(assignedApps);
+    } catch (error) {
+        console.error("Error retrieving assigned apps:", error);
+    }
 })
 
 // POST: push feedback from a reviewer to an app

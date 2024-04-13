@@ -241,7 +241,7 @@ app.post("/reviewer", cors(), async (req, res) => {
         // Send JWT Token back
         res.json({
             msg: "successfully created",
-            data: { username: username },
+            data: { username: username, org: org },
             token: accessToken,
         });
     } catch (error) {
@@ -271,7 +271,7 @@ app.post("/login", async (req, res) => {
       );
       return res.json({
         msg: "successfully logged in",
-        data: { username: username },
+        data: { username: username, org: org },
         token: accessToken,
       });
     } else {

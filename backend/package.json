@@ -6,6 +6,7 @@
     "firebase": "^10.8.0",
     "firebase-functions": "^4.7.0",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.13",
     "pbkdf2": "^3.1.2"
   }
 }

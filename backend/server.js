@@ -36,6 +36,18 @@ var pbkdf2 = require('pbkdf2')
 const jwt = require('jsonwebtoken');
 const SALT = ";asf;klsadfllsfjalskdfjl";
 
+const nodemailer = require('nodemailer');
+
+// Create reusable transporter object using SMTP transport
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'thoughtlessautomail@gmail.com',
+        pass: process.env.EMAIL_PASSWORD
+    }
+});
+
+
 // Hash a password function using PBKDF2
 const hashPassword = (password) => {
     const key = pbkdf2.pbkdf2Sync(password, SALT, 1000, 64, 'sha512');
@@ -67,7 +79,48 @@ function authMiddleware(req, res, next) {
         return res.status(401).json({ msg: "token was not found in header" });
     }
 }
-  
+
+function adminAuthMiddleware(req, res, next) {
+    if (req.headers["authorization"]) {
+        const headers = req.headers["authorization"].split(" ");
+        if (headers.length === 2 && headers[0] === "Bearer") {
+            let token = headers[1];
+            try {
+                let decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+                if (decodedToken.role !== "admin") {
+                    throw new Error("Not authorized as admin");
+                }
+                req.user = decodedToken;
+                next();
+            } catch (e) {
+                return res.status(401).json({ msg: e.message });
+            }
+        } else {
+            return res.status(401).json({ msg: "Invalid token format" });
+        }
+    } else {
+        return res.status(401).json({ msg: "Authorization token missing" });
+    }
+}
+
+function sendTokenEmail(email, token) {
+    const mailOptions = {
+        from: 'thoughtlessautomail@gmail.com', // sender address
+        to: email, // list of receivers
+        subject: 'Your Access Token', // Subject line
+        text: 'Here is your token: ' + token, // plaintext body
+        html: `<b>Here is your token:</b> <code>${token}</code>` // html body
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+            console.log('Email could not be sent: ' + error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+}
+
 
 // Endpoint to make a new org
 app.post("/org", cors(), async (req, res) => {
@@ -197,10 +250,17 @@ app.post("/reviewer", cors(), async (req, res) => {
             return res.status(400).json({ msg: "User exists" });
         }
 
+        role = "user"
+        const check2 = await db.collection(ORG_COLLECTION).doc(org).get();
+        if (check2.exists) {
+            role = "admin"
+        }
+
         const reviewer = {
             name: username, 
             password: passHashed,
-            org: org
+            org: org, 
+            role: role
         }
         console.log(reviewer)
 
@@ -637,6 +697,88 @@ const giveCurrentDateTime = () => {
     const dateTime = date + ' ' + time;
     return dateTime;
 }
+
+app.post("/invite-user", cors(), adminAuthMiddleware, async (req, res) => {
+    try {
+        const { email, username, role, org } = req.body;
+        const token = jwt.sign(
+            { email, org },
+            process.env.INVITE_SECRET,
+            { expiresIn: '48h' }
+        );
+
+        sendTokenEmail(email, token)
+        console.log(`Invite token for ${email}: ${token}`); // For demonstration
+
+        res.status(200).json({ message: "Invitation sent successfully", token });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+app.post("/register-from-invite", cors(), async (req, res) => {
+    const { token, username, password } = req.body;
+
+    try {
+        const decoded = jwt.verify(token, process.env.INVITE_SECRET);
+        const { org } = decoded;
+
+        // Create user logic here
+        const reviewer = {
+            username: username,
+            password: passHashed(password),
+            role: "user",
+            org: org
+        };
+        console.log(reviewer)
+
+        const reviewerRef = db.collection(REVIEWER_COLLECTION); 
+        await reviewerRef.doc(username).set(reviewer)
+
+        const documentRef = db.collection(REVIEWER_COLLECTION).doc(username);
+        // await documentRef.set({
+        //     name: name,
+        //     org: org
+        // });
+
+
+        // Send response with status 200
+        // res.status(200).send({ id: documentRef.id });
+
+        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); // FIXME should change this to be ID 
+
+        orgSnapshot.forEach(async (doc) => {
+            // add reviewer document to the subcollection named reviewers within the org collection
+            const orgId = doc.id;
+            const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection(REVIEWER_COLLECTION).doc(documentRef.id);
+            await reviewerRef.set({
+                name: username,
+                reviewerId: documentRef.id,
+                apps: []
+            });
+            // res.status(200).send({ id: reviewerRef.id });
+        });
+
+        // create new access token
+        const accessToken = jwt.sign(
+            { "username": username },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: '24h' }
+        );  
+        // Send JWT Token back
+        res.json({
+            msg: "successfully created",
+            data: { username: username, org: org },
+            token: accessToken,
+        });
+
+        res.status(201).json({ message: "User registered from invite", user: newUser });
+    } catch (error) {
+        res.status(400).send("Invalid or expired token");
+    }
+});
+
+
 
 // Setting the port for the server to listen on
 const PORT = process.env.PORT || 4001;

@@ -20,6 +20,8 @@ import {
     RadioGroup,
     Radio,
     CircularProgress,
+    Spacer,
+    Link,
 } from '@nextui-org/react';
 import { EditIcon } from './EditIcon';
 import { DeleteIcon } from './DeleteIcon';
@@ -29,6 +31,8 @@ import { columns, users } from './data';
 import NavigationBar from './Navigation';
 import MaxWidthWrapper from './MaxWidthWrapper';
 import ProfileModal from './ProfileModal';
+
+import { useNavigate } from 'react-router-dom';
 
 // const statusColorMap = {
 //     active: 'success',
@@ -52,10 +56,17 @@ export default function TableView() {
     const [questions, setQuestions] = useState(null);
     // const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
 
+    const navigate = useNavigate();
+
     const handleUserClick = (user) => {
         onOpen();
         setSelectedUser(user);
     };
+
+    function gotoUpload() {
+        console.log('Upload button was clicked');
+        navigate('/upload');
+    }
 
     useEffect(() => {
         getApps();
@@ -149,6 +160,18 @@ export default function TableView() {
             <>
                 <NavigationBar />
                 <MaxWidthWrapper>
+                    <div className="flex justify-start">
+                        <Button
+                            className="bg-black text-white"
+                            variant="flat"
+                            size="md"
+                            color="primary"
+                            onClick={() => {gotoUpload()}}
+                        >
+                            Upload a Spreadsheet
+                        </Button>
+                    </div>
+                    <Spacer y={5} />
                     <Table aria-label="Table of all applicant information">
                         <TableHeader columns={columns}>
                             {(column) => (

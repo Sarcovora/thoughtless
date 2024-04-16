@@ -330,7 +330,7 @@ app.post("/login", async (req, res) => {
       );
       return res.json({
         msg: "successfully logged in",
-        data: { username: username, org: org },
+        data: { username: username, org: user.org },
         token: accessToken,
       });
     } else {

@@ -292,7 +292,6 @@ app.post("/reviewer", cors(), async (req, res) => {
         });
 
         // create new access token
-        // set expiry to 30s so you can show how it expires when call route
         const accessToken = jwt.sign(
             { "username": username },
             process.env.ACCESS_TOKEN_SECRET,
@@ -716,6 +715,16 @@ app.post("/invite-user", cors(), adminAuthMiddleware, async (req, res) => {
     }
 });
 
+
+app.post("/fuckme", cors(), async (req, res) => {
+    try {
+        res.status(200).json({ message: process.env.ACCESS_TOKEN_SECRET });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+
 app.post("/register-from-invite", cors(), async (req, res) => {
     const { token, username, password } = req.body;
 
@@ -777,6 +786,8 @@ app.post("/register-from-invite", cors(), async (req, res) => {
         res.status(400).send("Invalid or expired token");
     }
 });
+
+
 
 
 

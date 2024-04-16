@@ -291,8 +291,9 @@ app.post("/reviewer", cors(), async (req, res) => {
             // res.status(200).send({ id: reviewerRef.id });
         });
 
+        console.log(process.env.ACCESS_TOKEN_SECRET); 
+
         // create new access token
-        // set expiry to 30s so you can show how it expires when call route
         const accessToken = jwt.sign(
             { "username": username },
             process.env.ACCESS_TOKEN_SECRET,

@@ -67,7 +67,7 @@ function authMiddleware(req, res, next) {
             // verify the token
             let decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
             // Set user object which can be accessed in the req in future
-            req.user = decodedToken.username;
+            req.user = decodedToken.email;
             next(); // Go to next function
         } catch (e) {
             return res.status(401).json({ msg: e.message });
@@ -241,23 +241,46 @@ app.get("/questions/:org", cors(), async(req, res) => {
 // POST: Endpoint to make a new reviewer and assign them to their org ... 
 app.post("/reviewer", cors(), async (req, res) => {
     try {
-        const { username, password, org } = req.body;
+        const { firstname, lastname, email, password, org } = req.body;
 
         const passHashed = hashPassword(password);
 
-        const check = await db.collection(REVIEWER_COLLECTION).doc(username).get();
+        const check = await db.collection(REVIEWER_COLLECTION).doc(email).get();
         if(check.exists) {
             return res.status(400).json({ msg: "User exists" });
         }
 
         role = "user"
         const check2 = await db.collection(ORG_COLLECTION).doc(org).get();
-        if (check2.exists) {
+        if (!check2.exists) {
             role = "admin"
+            const documentRef = db.collection(ORG_COLLECTION).doc();
+            await documentRef.set({
+                name: org,
+                questions: [], 
+                hyperlinks: [], 
+                id_info: [], 
+                file: ""
+            });
+        
+            const reviewerCollectionRef = documentRef.collection(REVIEWER_COLLECTION);
+            const reviewerDocRef = await reviewerCollectionRef.add({
+                name: 'Joe'
+            });
+
+            await reviewerDocRef.delete(); // Delete the document after creation
+
+            const appCollectionRef = documentRef.collection(APPS_COLLECTION);
+            const appDocRef = await appCollectionRef.add({
+                applicant: 'Bob'
+            });
+            await appDocRef.delete();
         }
 
         const reviewer = {
-            name: username, 
+            email: email,
+            firstname: firstname, 
+            lastname: lastname, 
             password: passHashed,
             org: org, 
             role: role
@@ -265,9 +288,9 @@ app.post("/reviewer", cors(), async (req, res) => {
         console.log(reviewer)
 
         const reviewerRef = db.collection(REVIEWER_COLLECTION); 
-        await reviewerRef.doc(username).set(reviewer)
+        await reviewerRef.doc(email).set(reviewer)
 
-        const documentRef = db.collection(REVIEWER_COLLECTION).doc(username);
+        const documentRef = db.collection(REVIEWER_COLLECTION).doc(email);
         // await documentRef.set({
         //     name: name,
         //     org: org
@@ -284,7 +307,9 @@ app.post("/reviewer", cors(), async (req, res) => {
             const orgId = doc.id;
             const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection(REVIEWER_COLLECTION).doc(documentRef.id);
             await reviewerRef.set({
-                name: username,
+                name: email,
+                firstname: firstname, 
+                lastname: lastname,
                 reviewerId: documentRef.id,
                 apps: []
             });
@@ -293,14 +318,14 @@ app.post("/reviewer", cors(), async (req, res) => {
 
         // create new access token
         const accessToken = jwt.sign(
-            { "username": username },
+            { "email": email },
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: '24h' }
         );  
         // Send JWT Token back
         res.json({
             msg: "successfully created",
-            data: { username: username, org: org },
+            data: { email: email, org: org },
             token: accessToken,
         });
     } catch (error) {
@@ -310,10 +335,10 @@ app.post("/reviewer", cors(), async (req, res) => {
 
 // Verifies password + creates token
 app.post("/login", async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     const passHashed = hashPassword(password);
     // Get the user
-    const check = await db.collection(REVIEWER_COLLECTION).doc(username).get();
+    const check = await db.collection(REVIEWER_COLLECTION).doc(email).get();
     // Check if user exists
     if (!check.exists) {
       return res.status(400).json({ msg: "User does not exist" });
@@ -324,13 +349,13 @@ app.post("/login", async (req, res) => {
     if (samePassword) {
       // user logged in correctly
       const accessToken = jwt.sign(
-        { "username": username },
+        { "email": email },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: '24h' }
       );
       return res.json({
         msg: "successfully logged in",
-        data: { username: username, org: user.org },
+        data: { email: email, org: user.org },
         token: accessToken,
       });
     } else {
@@ -699,7 +724,7 @@ const giveCurrentDateTime = () => {
 
 app.post("/invite-user", cors(), adminAuthMiddleware, async (req, res) => {
     try {
-        const { email, username, role, org } = req.body;
+        const { email, org } = req.body;
         const token = jwt.sign(
             { email, org },
             process.env.INVITE_SECRET,
@@ -726,15 +751,17 @@ app.post("/fuckme", cors(), async (req, res) => {
 
 
 app.post("/register-from-invite", cors(), async (req, res) => {
-    const { token, username, password } = req.body;
+    const { token, email, firstname, lastname, password } = req.body;
 
     try {
         const decoded = jwt.verify(token, process.env.INVITE_SECRET);
-        const { org } = decoded;
+        const { org } = decoded; // FIXME shouldn't this be org and email? 
 
         // Create user logic here
         const reviewer = {
-            username: username,
+            email: email,
+            firstname: firstname, 
+            lastname: lastname, 
             password: passHashed(password),
             role: "user",
             org: org
@@ -742,9 +769,9 @@ app.post("/register-from-invite", cors(), async (req, res) => {
         console.log(reviewer)
 
         const reviewerRef = db.collection(REVIEWER_COLLECTION); 
-        await reviewerRef.doc(username).set(reviewer)
+        await reviewerRef.doc(email).set(reviewer)
 
-        const documentRef = db.collection(REVIEWER_COLLECTION).doc(username);
+        const documentRef = db.collection(REVIEWER_COLLECTION).doc(email);
         // await documentRef.set({
         //     name: name,
         //     org: org
@@ -761,7 +788,9 @@ app.post("/register-from-invite", cors(), async (req, res) => {
             const orgId = doc.id;
             const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection(REVIEWER_COLLECTION).doc(documentRef.id);
             await reviewerRef.set({
-                name: username,
+                name: email,
+                firstname: firstname, 
+                lastname: lastname,
                 reviewerId: documentRef.id,
                 apps: []
             });
@@ -770,14 +799,14 @@ app.post("/register-from-invite", cors(), async (req, res) => {
 
         // create new access token
         const accessToken = jwt.sign(
-            { "username": username },
+            { "email": email },
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: '24h' }
         );  
         // Send JWT Token back
         res.json({
             msg: "successfully created",
-            data: { username: username, org: org },
+            data: { email: email, org: org },
             token: accessToken,
         });
 

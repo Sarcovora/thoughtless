@@ -26,6 +26,7 @@ function App() {
                     <Route path="/" element={<Home />} />
                     <Route path="/upload" element={<UploadPage />} />
                     <Route path="/tableview" element={<TableView />} />
+                    <Route path="/dashboard" element={<TableView />} />
                     <Route path="/profileview" element={<ProfileView />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />

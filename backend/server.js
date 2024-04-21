@@ -522,8 +522,17 @@ app.get("/assigned-apps/:org/:reviewerId", cors(), async (req, res) => {
         }
         const assignedAppIds = reviewerDoc.data().apps || [];
 
+        // Check if there are no assigned app IDs
+        if (assignedAppIds.length === 0) {
+            return res.status(200).send([]);
+        }
+
         // Fetch the application details for the assigned application IDs
         const appsCollectionRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION);
+        if (appsCollectionRef.empty) {
+            // No applications found for given IDs, return an empty array
+            return res.status(200).send([]);
+        }
         const appsQuerySnapshot = await appsCollectionRef.where(admin.firestore.FieldPath.documentId(), 'in', assignedAppIds).get();
 
         let assignedApps = [];

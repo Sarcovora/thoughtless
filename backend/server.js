@@ -676,8 +676,10 @@ app.post("/file", upload.single("filename"), cors(), async (req, res) => {
 
         // Run Python script on the saved file
         const spawn = require("child_process").spawn;
-        const pythonScript = './csv_to_json.py'; // Replace with the path to your Python script
-        const pythonProcess = spawn('python', [pythonScript])
+        const path = require('path');
+        const pythonScript = path.join(__dirname, 'csv_to_json.py');
+        // const pythonScript = './csv_to_json.py';
+        const pythonProcess = spawn('python3', [pythonScript])
         console.log('req.file:', req.file);
         // const pythonProcess = spawn('python', [pythonScript, req.file.buffer]);
 

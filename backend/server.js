@@ -677,9 +677,23 @@ app.post("/file", upload.single("filename"), cors(), async (req, res) => {
         // Run Python script on the saved file
         const spawn = require("child_process").spawn;
         const path = require('path');
+        const fs = require('fs');
         const pythonScript = path.join(__dirname, 'csv_to_json.py');
+
+        fs.access(pythonScript, fs.constants.F_OK, (err) => {
+            if (err) {
+                console.error('Python script file does not exist:', pythonScript);
+                return;
+            }
+            else {
+                console.log("YYAAAAAAAAAAAAAAAAAAYYYYYYYYY")
+            }
+
+            // Proceed to spawn the Python process
+        });
+
         // const pythonScript = './csv_to_json.py';
-        const pythonProcess = spawn('python3', [pythonScript])
+        const pythonProcess = spawn('python', [pythonScript])
         console.log('req.file:', req.file);
         // const pythonProcess = spawn('python', [pythonScript, req.file.buffer]);
 

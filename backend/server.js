@@ -35,7 +35,7 @@ var pbkdf2 = require('pbkdf2')
 // JWT 
 const jwt = require('jsonwebtoken');
 const SALT = ";asf;klsadfllsfjalskdfjl";
-
+const { parse } = require('csv-parse/sync');
 const nodemailer = require('nodemailer');
 
 // Create reusable transporter object using SMTP transport
@@ -674,49 +674,58 @@ app.post("/file", upload.single("filename"), cors(), async (req, res) => {
 
         console.log('File successfully uploaded.');
 
-        // Run Python script on the saved file
-        const spawn = require("child_process").spawn;
-        const path = require('path');
-        const fs = require('fs');
-        const pythonScript = path.join(__dirname, 'csv_to_json.py');
+        const jsonData = csvToJson(req.file.buffer);
+        if (!jsonData) {
+            res.status(500).send('Error converting CSV to JSON');
+            return;
+        }
 
-        fs.access(pythonScript, fs.constants.F_OK, (err) => {
-            if (err) {
-                console.error('Python script file does not exist:', pythonScript);
-                return;
-            }
-            else {
-                console.log("YYAAAAAAAAAAAAAAAAAAYYYYYYYYY")
-            }
+        console.log('CSV converted to JSON successfully.');
+        res.send(jsonData);
 
-            // Proceed to spawn the Python process
-        });
+        // // Run Python script on the saved file
+        // const spawn = require("child_process").spawn;
+        // const path = require('path');
+        // const fs = require('fs');
+        // const pythonScript = path.join(__dirname, 'csv_to_json.py');
 
-        // const pythonScript = './csv_to_json.py';
-        const pythonProcess = spawn('python', [pythonScript])
-        console.log('req.file:', req.file);
-        // const pythonProcess = spawn('python', [pythonScript, req.file.buffer]);
+        // fs.access(pythonScript, fs.constants.F_OK, (err) => {
+        //     if (err) {
+        //         console.error('Python script file does not exist:', pythonScript);
+        //         return;
+        //     }
+        //     else {
+        //         console.log("YYAAAAAAAAAAAAAAAAAAYYYYYYYYY")
+        //     }
 
-        // Pipe the file buffer to the Python script's standard input
-        pythonProcess.stdin.write(req.file.buffer);
-        pythonProcess.stdin.end();
+        //     // Proceed to spawn the Python process
+        // });
 
-        // Capture output of the Python script
-        let output = '';
-        pythonProcess.stdout.on('data', (data) => {
-            output += data.toString();
-        });
+        // // const pythonScript = './csv_to_json.py';
+        // const pythonProcess = spawn('python', [pythonScript])
+        // console.log('req.file:', req.file);
+        // // const pythonProcess = spawn('python', [pythonScript, req.file.buffer]);
 
-        pythonProcess.stderr.on('data', (data) => {
-            console.error(`stderr: ${data}`);
-        });
+        // // Pipe the file buffer to the Python script's standard input
+        // pythonProcess.stdin.write(req.file.buffer);
+        // pythonProcess.stdin.end();
 
-        // Handle Python script completion
-        pythonProcess.on('close', (code) => {
-            console.log(`Python script exited with code ${code}`);
-            // Send the output back as response
-            res.send(output);
-        });
+        // // Capture output of the Python script
+        // let output = '';
+        // pythonProcess.stdout.on('data', (data) => {
+        //     output += data.toString();
+        // });
+
+        // pythonProcess.stderr.on('data', (data) => {
+        //     console.error(`stderr: ${data}`);
+        // });
+
+        // // Handle Python script completion
+        // pythonProcess.on('close', (code) => {
+        //     console.log(`Python script exited with code ${code}`);
+        //     // Send the output back as response
+        //     res.send(output);
+        // });
 
         // return res.send({
         //     message: 'file uploaded to firebase storage',
@@ -736,6 +745,21 @@ const giveCurrentDateTime = () => {
     const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
     const dateTime = date + ' ' + time;
     return dateTime;
+}
+
+// Function to convert CSV data to JSON
+function csvToJson(csvData) {
+    try {
+        const csvStr = csvData.toString('utf-8');
+        const records = parse(csvStr, {
+            columns: true,
+            skip_empty_lines: true
+        });
+        return JSON.stringify(records, null, 4);
+    } catch (e) {
+        console.error('Error parsing CSV: ', e.message);
+        return null;
+    }
 }
 
 app.post("/invite-user", cors(), adminAuthMiddleware, async (req, res) => {

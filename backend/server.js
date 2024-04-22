@@ -307,7 +307,7 @@ app.post("/reviewer", cors(), async (req, res) => {
             const orgId = doc.id;
             const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection(REVIEWER_COLLECTION).doc(documentRef.id);
             await reviewerRef.set({
-                name: email,
+                email: email,
                 firstname: firstname, 
                 lastname: lastname,
                 reviewerId: documentRef.id,

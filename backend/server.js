@@ -127,7 +127,11 @@ app.post("/org", cors(), async (req, res) => {
     try {
       const { name } = req.body;
   
-      const documentRef = db.collection(ORG_COLLECTION).doc();
+      const check = await db.collection(ORG_COLLECTION).doc(name).get();
+      if(check.exists) {
+          return res.status(400).json({ msg: "User exists" });
+      }
+
       await documentRef.set({
         name: name,
         questions: [], 
@@ -262,7 +266,7 @@ app.post("/reviewer", cors(), async (req, res) => {
         const check2 = await db.collection(ORG_COLLECTION).doc(org).get();
         if (!check2.exists) {
             role = "admin"
-            const documentRef = db.collection(ORG_COLLECTION).doc();
+            const documentRef = db.collection(ORG_COLLECTION).doc(org);
             await documentRef.set({
                 name: org,
                 questions: [], 
@@ -308,12 +312,13 @@ app.post("/reviewer", cors(), async (req, res) => {
         // Send response with status 200
         // res.status(200).send({ id: documentRef.id });
 
-        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get(); // FIXME should change this to be ID 
+        // Directly get the organization document using the org ID
+        const orgRef = db.collection(ORG_COLLECTION).doc(org);
+        const orgSnapshot = await orgRef.get();
 
-        orgSnapshot.forEach(async (doc) => {
+        if(orgSnapshot.exists) {
             // add reviewer document to the subcollection named reviewers within the org collection
-            const orgId = doc.id;
-            const reviewerRef = db.collection(ORG_COLLECTION).doc(orgId).collection(REVIEWER_COLLECTION).doc(documentRef.id);
+            const reviewerRef = db.collection(ORG_COLLECTION).doc(org).collection(REVIEWER_COLLECTION).doc(documentRef.id);
             await reviewerRef.set({
                 email: email,
                 firstname: firstname, 
@@ -322,7 +327,7 @@ app.post("/reviewer", cors(), async (req, res) => {
                 apps: []
             });
             // res.status(200).send({ id: reviewerRef.id });
-        });
+        }
 
         // create new access token
         const accessToken = jwt.sign(
@@ -342,7 +347,7 @@ app.post("/reviewer", cors(), async (req, res) => {
 });
 
 // Verifies password + creates token
-app.post("/login", async (req, res) => {
+app.post("/login", cors(), async (req, res) => {
     const { email, password } = req.body;
     const passHashed = hashPassword(password);
     // Get the user

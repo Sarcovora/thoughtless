@@ -131,7 +131,7 @@ function sendTokenEmail(email, token) {
 
 
 // Endpoint to make a new org
-app.post("/org", cors(), async (req, res) => {
+app.post("/org", async (req, res) => {
     try {
       const { name } = req.body;
   
@@ -170,7 +170,7 @@ app.post("/org", cors(), async (req, res) => {
   }); 
 
 // POST: add questions, hyperlinks, and id_info
-app.post("/org/details", cors(), async (req, res) => {
+app.post("/org/details", async (req, res) => {
     try {
         const { org, questions, hyperlinks, id_info } = req.body;
 
@@ -204,7 +204,7 @@ app.post("/org/details", cors(), async (req, res) => {
 
 
 // GET: Endpoint to retrieve all orgs
-app.get("/orgs", cors(), async (req, res) => {
+app.get("/orgs", async (req, res) => {
     try {
         const snapshot = await db.collection(ORG_COLLECTION).get();
 
@@ -229,7 +229,7 @@ app.get("/orgs", cors(), async (req, res) => {
 });
 
 // GET: List of questions for an org
-app.get("/questions/:org", cors(), async(req, res) => {
+app.get("/questions/:org", async(req, res) => {
     try {
         const org = req.params.org;
 
@@ -259,7 +259,7 @@ app.get("/questions/:org", cors(), async(req, res) => {
 })
 
 // POST: Endpoint to make a new reviewer and assign them to their org ... 
-app.post("/reviewer", cors(), async (req, res) => {
+app.post("/reviewer", async (req, res) => {
     try {
         const { firstname, lastname, email, password, org } = req.body;
 
@@ -355,7 +355,7 @@ app.post("/reviewer", cors(), async (req, res) => {
 });
 
 // Verifies password + creates token
-app.post("/login", cors(), async (req, res) => {
+app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const passHashed = hashPassword(password);
     // Get the user
@@ -386,7 +386,7 @@ app.post("/login", cors(), async (req, res) => {
 
 
   // POST: add apps to review to a single reviewer 
-app.post("/assign", cors(), async (req, res) => {
+app.post("/assign", async (req, res) => {
     try {
         const { org, reviewer, apps } = req.body;
 
@@ -409,7 +409,7 @@ app.post("/assign", cors(), async (req, res) => {
 });
 
 //POST : Endpoint to post a new app 
-app.post("/app", cors(), async(req,res) => {
+app.post("/app", async(req,res) => {
     try {
         const { name, id_info, org, responses, hyperlinks } = req.body;
 
@@ -435,7 +435,7 @@ app.post("/app", cors(), async(req,res) => {
 }); 
 
 //POST : Endpoint to update an app's status 
-app.post("/update-status", cors(), async(req,res) => {
+app.post("/update-status", async(req,res) => {
     try {
         const { app_id, status, org } = req.body;
 
@@ -460,7 +460,7 @@ app.post("/update-status", cors(), async(req,res) => {
 }); 
 
 // apps but delete everything 
-app.post("/apps", cors(), async (req, res) => {
+app.post("/apps", async (req, res) => {
     try {
         const apps = req.body; // Assuming req.body is an array of apps
 
@@ -540,7 +540,7 @@ app.post("/apps", cors(), async (req, res) => {
 // });
 
 // ALTERNATE GET using params instead of body 
-app.get("/apps/:org", cors(), async (req, res) => {
+app.get("/apps/:org", async (req, res) => {
 
     try {
       const org = req.params.org;
@@ -571,7 +571,7 @@ app.get("/apps/:org", cors(), async (req, res) => {
 })
 
 // GET: Endpoint to retrieve apps assigned to a specific reviewer within an organization
-app.get("/assigned-apps/:org/:reviewerId", cors(), async (req, res) => {
+app.get("/assigned-apps/:org/:reviewerId", async (req, res) => {
     try {
         const { org, reviewerId } = req.params;
 
@@ -614,7 +614,7 @@ app.get("/assigned-apps/:org/:reviewerId", cors(), async (req, res) => {
 })
 
 // POST: push feedback from a reviewer to an app
-app.post("/feedback", cors(), async (req, res) => {
+app.post("/feedback", async (req, res) => {
     const { org, reviewer, app, feedback_array, comments_array } = req.body;
 
     try {
@@ -653,7 +653,7 @@ app.post("/feedback", cors(), async (req, res) => {
 });
 
 // GET for feedback
-app.get("/feedback/:org/:app/:reviewer", cors(), async (req, res) => {
+app.get("/feedback/:org/:app/:reviewer", async (req, res) => {
     const org = req.params.org;
     const app = req.params.app;
     const reviewer = req.params.reviewer;
@@ -721,7 +721,7 @@ app.get("/feedback/:org/:app/:reviewer", cors(), async (req, res) => {
 });
 
 
-app.post("/file", upload.single("filename"), cors(), async (req, res) => {
+app.post("/file", upload.single("filename"), async (req, res) => {
     try {
         const dateTime = giveCurrentDateTime();
 
@@ -857,7 +857,7 @@ function csvToJson(csvData) {
     }
 }
 
-app.post("/invite-user", cors(), adminAuthMiddleware, async (req, res) => {
+app.post("/invite-user", adminAuthMiddleware, async (req, res) => {
     try {
         const { email, org } = req.body;
         const token = jwt.sign(
@@ -876,7 +876,7 @@ app.post("/invite-user", cors(), adminAuthMiddleware, async (req, res) => {
 });
 
 
-app.post("/fuckme", cors(), async (req, res) => {
+app.post("/fuckme", async (req, res) => {
     try {
         res.status(200).json({ message: process.env.ACCESS_TOKEN_SECRET });
     } catch (error) {
@@ -885,7 +885,7 @@ app.post("/fuckme", cors(), async (req, res) => {
 });
 
 
-app.post("/register-from-invite", cors(), async (req, res) => {
+app.post("/register-from-invite", async (req, res) => {
     const { token, email, firstname, lastname, password } = req.body;
 
     try {

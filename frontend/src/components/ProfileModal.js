@@ -159,7 +159,6 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
                                             </Chip>
                                             <Divider className="my-5" />
                                             {/* ALL ID INFO */}
-                                            (id_info &&
                                             {id_info.map((info, index) => (
                                                 <div>
                                                     {/* <p className="mb-1 font-semibold">
@@ -179,7 +178,6 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
                                                     </div>
                                                 </div>
                                             ))}
-                                            )
                                         </CardBody>
                                         {/* <Divider /> */}
                                         {/* <CardFooter> */}

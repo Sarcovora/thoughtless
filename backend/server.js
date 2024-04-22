@@ -1,22 +1,6 @@
 // Importing required modules
 const cors = require("cors");
-// const { getStorage, ref, getDownloadURL, uploadBytesResumable } = require("firebase/storage");
-
-// CORS configuration
-app.use(cors({
-    origin: function (origin, callback) {
-      return callback(null, true); // Allows every origin
-    },
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Or simply ['GET', 'POST', 'PUT', 'DELETE', etc.]
-    allowedHeaders: "*", // Or specify like ['Content-Type', 'Authorization']
-    credentials: true // Allows credentials
-  }));
-  
-  // Your routes here
-  app.get('/', (req, res) => {
-    res.send('CORS-enabled for all origins!');
-  });
-
+// const { getStorage, ref, getDownloadURL, uploadBytesResumable } = require("firebase/storage")
 
 // Creating an instance of Express
 const express = require('express');

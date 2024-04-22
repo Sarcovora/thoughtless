@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MaxWidthWrapper from './MaxWidthWrapper';
 import NavigationBar from './Navigation';
 import {
@@ -29,8 +30,9 @@ import UploadBox from './UploadBox';
 const categorizeResponses = (responses, orgDetails) => {
     const apps = responses.map((applicant) => {
         // const app = { responses: {}, id_info: [], hyperlinks: [] };
-        // FIXME make sure the org is correct
-        const app = { responses: [], id_info: [], hyperlinks: [], org: 'tpeo' };
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        const org = userData?.org;
+        const app = { responses: [], id_info: [], hyperlinks: [], org: org };
 
         for (const key of Object.keys(applicant)) {
             const type = orgDetails[key] || 'question';
@@ -57,6 +59,8 @@ const categorizeResponses = (responses, orgDetails) => {
 };
 
 const UploadPage = ({}) => {
+    const navigate = useNavigate();
+
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [orgDetails, setOrgDetails] = useState(null);
     const [responses, setResponses] = useState(null); // Initialize responses state to null
@@ -95,6 +99,9 @@ const UploadPage = ({}) => {
         : [];
 
     const handleSaveAndContinue = async () => {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        const org = userData?.org;
+
         // FIXME if I don't get a name field, prompt user to get a name field
         // Categorize the responses
         const appsData = categorizeResponses(responses, orgDetails);
@@ -115,7 +122,7 @@ const UploadPage = ({}) => {
                 (key) => orgDetails[key] === 'question',
             ),
             // FIXME make sure this is the correct org
-            org: 'tpeo', // this needs to be dynamically determined based on your logic
+            org: org, // this needs to be dynamically determined based on your logic
         };
 
         // console.log('APP DATA');
@@ -157,6 +164,7 @@ const UploadPage = ({}) => {
 
             // Handle successful POST requests here, such as closing the modal or notifying the user
             // console.log('Data posted successfully');
+            navigate("/dashboard")
         } catch (error) {
             // Handle errors here, such as updating the UI to display an error message
             console.error(error);

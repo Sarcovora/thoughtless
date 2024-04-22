@@ -666,9 +666,12 @@ app.get("/feedback/:org/:app/:reviewer", cors(), async (req, res) => {
 
         const appData = appDoc.data();
         if (!appData.reviewers || !appData.reviewers[reviewer]) {
-            console.log('Reviewer data not found.');
-            res.status(404).send('Reviewer data not found.');
-            return;
+            const updateData = {};
+            updateData[`reviewers.${reviewer}.feedback`] = [];
+            updateData[`reviewers.${reviewer}.comments`] = [];
+
+            // Update the document with the new data
+            await appRef.update(updateData);
         }
 
         const feedbackArray = appData.reviewers[reviewer].feedback || [];

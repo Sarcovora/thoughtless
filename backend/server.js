@@ -19,6 +19,15 @@ const upload = firebaseModules.upload
 // const ref = firebaseModules.ref
 // const 
 
+const corsOptions = {
+    origin: '*', // Allows all origins
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed HTTP methods
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions)); // Use CORS with options
+
 // Middleware to parse JSON bodies
 app.use(express.json());
 app.use(cors()); 

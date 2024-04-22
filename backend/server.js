@@ -2,6 +2,13 @@
 const cors = require("cors");
 // const { getStorage, ref, getDownloadURL, uploadBytesResumable } = require("firebase/storage");
 
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "https://thoughtless-teal.vercel.app"); // Or "*" for less restrictive
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    next();
+});
+
 
 // Creating an instance of Express
 const express = require('express');

@@ -17,6 +17,9 @@ const RubricRatings = ({ feedback, questionId, applicant }) => {
     const [ratings, setRatings] = useState(feedback.feedbackArray);
     const [comments, setComments] = useState(feedback.commentsArray);
 
+    // console.log(ratings);
+    // console.log(comments)
+
     const userData = JSON.parse(localStorage.getItem('userData'));
     const org = userData?.org;
     const reviewer = userData?.username;
@@ -35,15 +38,18 @@ const RubricRatings = ({ feedback, questionId, applicant }) => {
         // console.log(ratings);
         // console.log(comments);
         const fetchURL = `${backendURL}/feedback`;
+        console.log(fetchURL)
+        // ratings is a 2d array. Unpack that into a 1d array
+        const flatRatings = ratings.flat();
         // console.log(fetchURL)
         const body = JSON.stringify({
             reviewer: reviewer,
             org: org,
             app: applicant,
-            feedback_array: ratings[0],
+            feedback_array: flatRatings,
             comments_array: comments,
         });
-        // console.log(body);
+        console.log(body);
         fetch(fetchURL, {
             method: 'POST',
             headers: {
@@ -112,7 +118,11 @@ const RubricRatings = ({ feedback, questionId, applicant }) => {
                 className="max-w-md"
                 defaultValue={ratings[questionId]}
                 onChange={(value) => {
+                    console.log("BEFORE")
+                    console.log(ratings)
                     ratings[questionId] = value;
+                    console.log("AFTER")
+                    console.log(ratings)
                     updateFeedback();
                 }}
             />

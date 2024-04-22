@@ -639,58 +639,74 @@ app.post("/feedback", cors(), async (req, res) => {
     }
 });
 
-//GET for feedback 
+// GET for feedback
 app.get("/feedback/:org/:app/:reviewer", cors(), async (req, res) => {
     const org = req.params.org;
-    const reviewer = req.params.reviewer; 
-    const app = req.params.app;  
+    const app = req.params.app;
+    const reviewer = req.params.reviewer;
 
     try {
         const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "==", org).get();
         if (orgSnapshot.empty) {
-            console.log('No matching documents.');
-            res.status(404).send('No matching documents.');
+            console.log('No matching documents for organization.');
+            res.status(404).send('No matching documents for organization.');
             return;
         }
 
         const orgId = orgSnapshot.docs[0].id;
-        const appSnapshot = await db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).where("name", "==", app).get();
+        const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION);
+        const appSnapshot = await appRef.where("name", "==", app).get();
 
         if (appSnapshot.empty) {
             console.log('No matching app documents.');
-            res.status(404).send('No matching documents.');
+            res.status(404).send('No matching app documents.');
             return;
         }
 
         const appId = appSnapshot.docs[0].id;
-        const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc(appId);
+        const appDocRef = appRef.doc(appId);
 
-        const appDoc = await appRef.get();
-        if (!appDoc.exists) {
-            console.log('App document not found.');
-            res.status(404).send('App document not found.');
-            return;
-        }
+        await db.runTransaction(async (transaction) => {
+            const appDoc = await transaction.get(appDocRef);
+            if (!appDoc.exists) {
+                throw new Error('App document not found.');
+            }
 
-        const appData = appDoc.data();
-        if (!appData.reviewers || !appData.reviewers[reviewer]) {
-            const updateData = {};
-            updateData[`reviewers.${reviewer}.feedback`] = [];
-            updateData[`reviewers.${reviewer}.comments`] = [];
+            let appData = appDoc.data();
+            if (!appData.reviewers || !appData.reviewers[reviewer]) {
+                // Prepare update data
+                const updateData = {};
+                updateData[`reviewers.${reviewer}.feedback`] = [];
+                updateData[`reviewers.${reviewer}.comments`] = [];
 
-            // Update the document with the new data
-            await appRef.update(updateData);
-        }
+                // Perform update in the transaction
+                transaction.update(appDocRef, updateData);
 
-        const feedbackArray = appData.reviewers[reviewer].feedback || [];
-        const commentsArray = appData.reviewers[reviewer].comments || [];
+                // Initialize arrays to empty since there's no existing data
+                appData = {
+                    reviewers: {
+                        [reviewer]: {
+                            feedback: [],
+                            comments: []
+                        }
+                    }
+                };
+            }
 
-        res.status(200).json({ feedbackArray, commentsArray });
+            const feedbackArray = appData.reviewers[reviewer].feedback || [];
+            const commentsArray = appData.reviewers[reviewer].comments || [];
+            res.status(200).json({ feedbackArray, commentsArray });
+        });
     } catch (error) {
         console.error("Error retrieving feedback:", error);
-        res.status(500).send(error.message);
+        if (error.message === 'App document not found.') {
+            res.status(404).send('App document not found.');
+        } else {
+            res.status(500).send(error.message);
+        }
     }
 });
+
 
 app.post("/file", upload.single("filename"), cors(), async (req, res) => {
     try {

@@ -61,6 +61,8 @@ export default function NavigationBar() {
                                 to="/dashboard"
                                 variant="flat"
                                 className="nav-button bg-black text-white"
+                                // variant="solid"
+                                // className="nav-button"
                             >
                                 Hello {username}!
                             </Button>
@@ -81,6 +83,8 @@ export default function NavigationBar() {
                                 to="/signup"
                                 variant="flat"
                                 className="nav-button bg-black text-white"
+                                // variant="solid"
+                                // className="nav-button"
                             >
                                 Sign Up
                             </Button>

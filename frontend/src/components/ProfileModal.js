@@ -35,8 +35,8 @@ const statusColorMap = {
 
 const ProfileModal = ({ selectedUser, questions }) => {
     const backendURL = 'https://thoughtless-backend.vercel.app';
-    const org = 'TPEO';
-    const reviewer = 'Ben';
+    const org = 'TPEO'; // FIXME make sure I'm pulling this from the signed in org
+    const reviewer = 'Ben'; // FIXME make sure I'm pulling this from the signed in reviewer
     // console.log('selectedUser', selectedUser.name);
 
     const [feedback, setFeedback] = useState(null);
@@ -58,6 +58,8 @@ const ProfileModal = ({ selectedUser, questions }) => {
             });
     }
 
+    console.log(questions);
+
     return (
         <>
             {/* <MaxWidthWrapper> */}
@@ -78,6 +80,7 @@ const ProfileModal = ({ selectedUser, questions }) => {
                                                 width={60}
                                             />
 
+                                            {/* FIXME make sure I'm pulling the correct fields */}
                                             <h1 className="text-2xl font-bold">
                                                 {selectedUser.name}
                                             </h1>

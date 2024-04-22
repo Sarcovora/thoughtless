@@ -8,16 +8,6 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import UploadPage from './components/UploadPage';
 
-import {
-    Navbar,
-    NavbarBrand,
-    NavbarContent,
-    NavbarItem,
-    Button,
-} from '@nextui-org/react';
-
-import { NextUIProvider } from '@nextui-org/react';
-
 function App() {
     return (
         <div className="App">

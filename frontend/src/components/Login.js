@@ -126,7 +126,9 @@ export default function Signup() {
                             <div className="ml-auto">
                                 <Button
                                     className="mx-auto max-w-[66.666%] bg-black text-white"
+                                    // className="mx-auto max-w-[66.666%]"
                                     variant="flat"
+                                    // variant="solid"
                                     size="md"
                                     color="primary"
                                     type="submit"

@@ -18,6 +18,7 @@ import {
     Slider,
     Textarea,
     CircularProgress,
+    Button,
 } from '@nextui-org/react';
 import MaxWidthWrapper from './MaxWidthWrapper';
 import NavigationBar from './Navigation';
@@ -39,6 +40,9 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
 
     const [feedback, setFeedback] = useState(null);
     const [isLoadingFeedback, setIsLoadingFeedback] = useState(true);
+
+    const [ratings, setRatings] = useState(null);
+    const [comments, setComments] = useState(null);
 
     useEffect(() => {
         getFeedback();
@@ -66,9 +70,46 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
                     data.commentsArray = new Array(questions.length).fill('');
                 }
                 setFeedback(data);
+                setRatings(data.feedbackArray)
+                setComments(data.commentsArray)
                 setIsLoadingFeedback(false);
             });
     }
+
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    const org = userData?.org;
+    const reviewer = userData?.username;
+    function updateFeedback() {
+        // console.log(reviewer);
+        // console.log(org);
+        // console.log(applicant);
+        // console.log(ratings);
+        // console.log(comments);
+        const fetchURL = `${backendURL}/feedback`;
+        console.log(fetchURL);
+        // ratings is a 2d array. Unpack that into a 1d array
+        const flatRatings = ratings.flat();
+        // console.log(fetchURL)
+        console.log('POSTING COMMENTS', comments);
+        const body = JSON.stringify({
+            reviewer: reviewer,
+            org: org,
+            app: selectedUser.name,
+            feedback_array: flatRatings,
+            comments_array: comments,
+        });
+        // console.log(body);
+        fetch(fetchURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', // Set the headers to inform the server about the type of the content
+            },
+            body: body,
+        });
+    }
+    const handleSave = () => {
+        updateFeedback();
+    };
 
     // console.log('-=-=-=-=-=-=-=-=');
     // console.log(questions);
@@ -254,6 +295,10 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
                                                             questionId={index}
                                                             // reviewer={reviewer}
                                                             // org={org}
+                                                            ratings={ratings}
+                                                            setRatings={setRatings}
+                                                            comments={comments}
+                                                            setComments={setComments}
                                                             applicant={
                                                                 selectedUser.name
                                                             }
@@ -262,6 +307,17 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
                                                 ),
                                             )}
                                         </Accordion>
+                                        <div className="flex justify-center mt-4">
+                                            <Button
+                                                className="mx-auto max-w-[200px] bg-black text-white mb-3"
+                                                variant="flat"
+                                                size="md"
+                                                color="primary"
+                                                onClick={handleSave}
+                                            >
+                                                Save &amp; Finish
+                                            </Button>
+                                        </div>
                                     </>
                                 )}
                             </div>

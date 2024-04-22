@@ -178,7 +178,9 @@ export default function TableView() {
                             // variant="solid"
                             size="md"
                             color="primary"
-                            onClick={() => {gotoUpload()}}
+                            onClick={() => {
+                                gotoUpload();
+                            }}
                         >
                             Upload Page
                         </Button>
@@ -209,6 +211,9 @@ export default function TableView() {
                     <div className="flex flex-col gap-2">
                         {/* <Button onPress={onOpen}>Open Modal</Button> */}
                         <Modal
+                            isDismissable={false}
+                            isKeyboardDismissDisabled={true}
+                            backdrop="blur"
                             isOpen={isOpen}
                             onOpenChange={onOpenChange}
                             scrollBehavior={'inside'}

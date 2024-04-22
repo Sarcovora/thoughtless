@@ -17,8 +17,8 @@ const SelectDataType = ({ dataName, orgDetails, setOrgDetails }) => {
             [dataName]: newValue, // Update the value for the specific dataName
         };
         setOrgDetails(updatedDetails); // Set the new orgDetails state in the parent component
-		console.log("New Org Details: ")
-		console.log(updatedDetails)
+		// console.log("New Org Details: ")
+		// console.log(updatedDetails)
     };
 
     return (

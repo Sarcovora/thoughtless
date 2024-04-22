@@ -3,6 +3,11 @@ import NavigationBar from './Navigation';
 import { ArrowRight } from 'lucide-react';
 import { Link, Button, Image } from '@nextui-org/react';
 
+// import GradingPreview from '../previewImages/grading-preview.png';
+// import DataProcess from './previewImages/DataProcess.png';
+// import TableView from './previewImages/TableView.png';
+// import UploadBox from './previewImages/UploadBox.png';
+
 export default function Home() {
     // return (
     //     <div>
@@ -75,10 +80,10 @@ export default function Home() {
                             <div className="mt-16 flow-root sm:mt-24">
                                 <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
                                     <Image
-                                        src="/dashboard-preview.jpg"
-                                        alt="product preview"
-                                        width={1364}
-                                        height={866}
+                                        src={DataProcess}
+                                        alt="grading preview"
+                                        width={2353}
+                                        height={1325}
                                         quality={100}
                                         className="rounded-md bg-white p-2 sm:p-8 md:p-20 shadow-2xl ring-1 ring-gray-900/10"
                                     />

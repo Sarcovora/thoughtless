@@ -33,10 +33,8 @@ const statusColorMap = {
     vacation: 'warning',
 };
 
-const ProfileModal = ({ selectedUser, questions }) => {
+const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
     const backendURL = 'https://thoughtless-backend.vercel.app';
-    const org = 'TPEO'; // FIXME make sure I'm pulling this from the signed in org
-    const reviewer = 'Ben'; // FIXME make sure I'm pulling this from the signed in reviewer
     // console.log('selectedUser', selectedUser.name);
 
     const [feedback, setFeedback] = useState(null);
@@ -47,6 +45,9 @@ const ProfileModal = ({ selectedUser, questions }) => {
     }, []);
 
     function getFeedback() {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        const org = userData?.org;
+        const reviewer = userData?.username;
         const fetchURL = `${backendURL}/feedback/${org}/${selectedUser.name}/${reviewer}`;
         fetch(fetchURL, {
             method: 'GET',
@@ -58,7 +59,29 @@ const ProfileModal = ({ selectedUser, questions }) => {
             });
     }
 
-    console.log(questions);
+    // console.log('-=-=-=-=-=-=-=-=');
+    // console.log(questions);
+    // console.log(id_info);
+    // console.log(links);
+    // console.log('-=-=-=-=-=-=-=-=');
+
+    const renderIdInfo = (info, index) => {
+        const value = selectedUser.id_info[index];
+        // Check if the value is also in the links array
+        const isLink = links.includes(info);
+
+        // If it's a link, return a Link component
+        if (isLink) {
+            return (
+                <Link href={value} isExternal className="mb-3">
+                    {value}
+                </Link>
+            );
+        }
+
+        // Otherwise, return a simple paragraph
+        return <p className="mb-3">{value}</p>;
+    };
 
     return (
         <>
@@ -79,17 +102,17 @@ const ProfileModal = ({ selectedUser, questions }) => {
                                                 src={selectedUser.avatar}
                                                 width={60}
                                             />
+                                            {/* FIXME <Avatar> */}
 
-                                            {/* FIXME make sure I'm pulling the correct fields */}
                                             <h1 className="text-2xl font-bold">
                                                 {selectedUser.name}
                                             </h1>
 
-                                            <div className="flex flex-col">
+                                            {/* <div className="flex flex-col">
                                                 <p className="text-small text-default-500">
-                                                    {selectedUser.email}
+                                                    {selectedUser.email}ooooo
                                                 </p>
-                                            </div>
+                                            </div> */}
                                         </CardHeader>
                                         {/* <Divider /> */}
                                         <CardBody>
@@ -112,7 +135,7 @@ const ProfileModal = ({ selectedUser, questions }) => {
                                             <Divider className="mb-3" />
 
                                             <p className="mb-1 font-semibold">
-                                                Status:
+                                                Review Status:
                                             </p>
 
                                             <Chip
@@ -127,10 +150,31 @@ const ProfileModal = ({ selectedUser, questions }) => {
                                             >
                                                 {selectedUser.status}
                                             </Chip>
+                                            <Divider className="my-5" />
+                                            {/* ALL ID INFO */}
+                                            {id_info.map((info, index) => (
+                                                <div>
+                                                    {/* <p className="mb-1 font-semibold">
+                                                        {info}:
+                                                    </p>
+                                                    <p className="mb-3">
+                                                        {selectedUser.id_info[index]}
+                                                    </p> */}
+                                                    <div key={index}>
+                                                        <p className="mb-1 font-semibold">
+                                                            {info}:
+                                                        </p>
+                                                        {renderIdInfo(
+                                                            info,
+                                                            index,
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </CardBody>
-                                        <Divider />
-                                        <CardFooter>
-                                            {/* <Link
+                                        {/* <Divider /> */}
+                                        {/* <CardFooter> */}
+                                        {/* <Link
                                                 isExternal
                                                 showAnchorIcon
                                                 href={
@@ -149,7 +193,7 @@ const ProfileModal = ({ selectedUser, questions }) => {
                                             >
                                                 Github
                                             </Link> */}
-                                        </CardFooter>
+                                        {/* </CardFooter> */}
                                     </Card>
                                 </div>
                                 {questions.map((question, index) => (
@@ -201,8 +245,8 @@ const ProfileModal = ({ selectedUser, questions }) => {
                                                         <RubricRatings
                                                             feedback={feedback}
                                                             questionId={index}
-                                                            reviewer={reviewer}
-                                                            org={org}
+                                                            // reviewer={reviewer}
+                                                            // org={org}
                                                             applicant={
                                                                 selectedUser.name
                                                             }

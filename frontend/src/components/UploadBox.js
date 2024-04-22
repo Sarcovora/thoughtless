@@ -59,7 +59,9 @@ const UploadBox = ({ onServerResponse, onUploadComplete }) => {
     ) => {
         const formData = new FormData();
         formData.append('filename', file, file.name);
-        formData.append('org', 'tpeo'); // FIXME Replace 'tpeo' with the actual value you need to send.
+		const userData = JSON.parse(localStorage.getItem('userData'));
+        const org = userData?.org;
+        formData.append('org', org);
 
         const request = new XMLHttpRequest();
         request.open('POST', 'https://thoughtless-backend.vercel.app/file');
@@ -75,7 +77,7 @@ const UploadBox = ({ onServerResponse, onUploadComplete }) => {
                 const responseJson = JSON.parse(response);
                 onServerResponse(responseJson); // Pass the response up to the parent component
                 onUploadComplete();
-                console.log(responseJson);
+                // console.log(responseJson);
             } else {
                 error(request.responseText);
             }

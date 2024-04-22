@@ -10,12 +10,16 @@ import React, { useState } from 'react';
 import {} from '@nextui-org/react';
 import { ListboxWrapper } from './ListboxWrapper';
 
-const RubricRatings = ({ feedback, questionId, reviewer, org, applicant }) => {
+const RubricRatings = ({ feedback, questionId, applicant }) => {
     // const ratings = feedback.feedbackArray;
     // const comments = feedback.commentsArray;
 
     const [ratings, setRatings] = useState(feedback.feedbackArray);
     const [comments, setComments] = useState(feedback.commentsArray);
+
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    const org = userData?.org;
+    const reviewer = userData?.username;
     // console.log(reviewer);
     // console.log(org);
     // console.log(applicant);
@@ -33,10 +37,10 @@ const RubricRatings = ({ feedback, questionId, reviewer, org, applicant }) => {
         const fetchURL = `${backendURL}/feedback`;
         // console.log(fetchURL)
         const body = JSON.stringify({
-            reviewer,
-            org,
+            reviewer: reviewer,
+            org: org,
             app: applicant,
-            feedback_array: ratings,
+            feedback_array: ratings[0],
             comments_array: comments,
         });
         // console.log(body);
@@ -105,14 +109,14 @@ const RubricRatings = ({ feedback, questionId, reviewer, org, applicant }) => {
                 showSteps={false}
                 maxValue={5}
                 minValue={1}
-                className="max-w-md" // FIXME could be the problem with scrollbar
+                className="max-w-md"
                 defaultValue={ratings[questionId]}
                 onChange={(value) => {
                     ratings[questionId] = value;
                     updateFeedback();
                 }}
             />
-            <Select
+            {/* <Select
                 isRequired
                 label="Rating"
                 placeholder="Select a rating"
@@ -124,7 +128,7 @@ const RubricRatings = ({ feedback, questionId, reviewer, org, applicant }) => {
                         {itemRating.label}
                     </SelectItem>
                 ))}
-            </Select>
+            </Select> */}
             {/* <div className="flex flex-col gap-2 max-w-md">
                 <ListboxWrapper className="max-w-md">
                     <Listbox
@@ -153,7 +157,7 @@ const RubricRatings = ({ feedback, questionId, reviewer, org, applicant }) => {
                 label="Comments"
                 labelPlacement="outside"
                 placeholder={
-                    comments[questionId].length > 0
+                    (comments[questionId] && comments[questionId].length > 0)
                         ? comments[questionId]
                         : 'Additional comments here'
                 }

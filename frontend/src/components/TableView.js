@@ -54,7 +54,11 @@ export default function TableView() {
     const [isLoadingApps, setIsLoadingApps] = useState(true);
 
     const [questions, setQuestions] = useState(null);
+    const [infoQuestions, setInfoQuestions] = useState(null);
+    const [linkQuestions, setLinkQuestions] = useState(null);
     // const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+
+    const [org, setOrg] = useState(null);
 
     const navigate = useNavigate();
 
@@ -76,8 +80,9 @@ export default function TableView() {
     // FIXME make sure this has an error state
     function getApps() {
         // console.log('fetching apps');
-        // FIXME Make sure this is pulling from the correct one
-        const fetchURL = `${backendURL}/apps/tpeo`;
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        const org = userData?.org;
+        const fetchURL = `${backendURL}/apps/${org}`;
         fetch(fetchURL, {
             method: 'GET', // Make sure to use the correct HTTP method
         })
@@ -91,14 +96,17 @@ export default function TableView() {
     }
 
     function getQuestions() {
-        // FIXME make sure this pulls from the correct org
-        const fetchURL = `${backendURL}/questions/tpeo`;
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        const org = userData?.org;
+        const fetchURL = `${backendURL}/questions/${org}`;
         fetch(fetchURL, {
             method: 'GET', // Make sure to use the correct HTTP method
         })
             .then((response) => response.json())
             .then((data) => {
-                setQuestions(data);
+                setQuestions(data.questions);
+                setInfoQuestions(data.id_info);
+                setLinkQuestions(data.links);
                 // console.log(questions);
                 // console.log(data);
                 // setIsLoadingQuestions(false);
@@ -227,6 +235,8 @@ export default function TableView() {
                                                 <ProfileModal
                                                     selectedUser={selectedUser}
                                                     questions={questions}
+                                                    id_info={infoQuestions}
+                                                    links={linkQuestions}
                                                 />
                                             ) : (
                                                 'No user selected'

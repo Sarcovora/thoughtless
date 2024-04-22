@@ -2,12 +2,20 @@
 const cors = require("cors");
 // const { getStorage, ref, getDownloadURL, uploadBytesResumable } = require("firebase/storage");
 
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "https://thoughtless-teal.vercel.app"); // Or "*" for less restrictive
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    next();
-});
+// CORS configuration
+app.use(cors({
+    origin: function (origin, callback) {
+      return callback(null, true); // Allows every origin
+    },
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Or simply ['GET', 'POST', 'PUT', 'DELETE', etc.]
+    allowedHeaders: "*", // Or specify like ['Content-Type', 'Authorization']
+    credentials: true // Allows credentials
+  }));
+  
+  // Your routes here
+  app.get('/', (req, res) => {
+    res.send('CORS-enabled for all origins!');
+  });
 
 
 // Creating an instance of Express

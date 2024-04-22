@@ -438,39 +438,85 @@ app.post("/update-status", cors(), async(req,res) => {
     }
 }); 
 
-//POST : Endpoint to post many new apps
+// apps but delete everything 
 app.post("/apps", cors(), async (req, res) => {
     try {
         const apps = req.body; // Assuming req.body is an array of apps
 
-        const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "in", apps.map(app => app.org)).get(); // FIXME should change this to be ID 
+        // Fetching organization documents based on their names
+        const orgNames = apps.map(app => app.org);
+        const orgSnapshot = await db.collection(ORG_COLLECTION)
+                                    .where("name", "in", orgNames)
+                                    .get();
+        
+        const batch = db.batch(); // Initialize Firestore batch for atomic operations
 
-        const promises = [];
-
-        orgSnapshot.forEach(async (orgDoc) => {
+        // Iterate over each organization document
+        await Promise.all(orgSnapshot.docs.map(async (orgDoc) => {
             const orgId = orgDoc.id;
+            const appsCollection = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION);
             
-            apps.filter(app => app.org === orgDoc.data().name).forEach(async (app) => {
-                const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc();
-                promises.push(
-                    appRef.set({
-                        name: app.name,
-                        status: "Incomplete",
-                        id_info: app.id_info,
-                        hyperlinks: app.hyperlinks,
-                        responses: app.responses
-                    })
-                );
+            // Fetch existing apps to delete them
+            const existingAppsSnapshot = await appsCollection.get();
+            existingAppsSnapshot.forEach(doc => {
+                batch.delete(doc.ref); // Schedule deletion of each app
             });
-        });
 
-        await Promise.all(promises);
+            // Add new apps corresponding to this organization
+            apps.filter(app => app.org === orgDoc.data().name).forEach(app => {
+                const newAppRef = appsCollection.doc(); // Creating a new document reference
+                batch.set(newAppRef, {
+                    name: app.name,
+                    status: "Incomplete",
+                    id_info: app.id_info,
+                    hyperlinks: app.hyperlinks,
+                    responses: app.responses
+                }); // Schedule addition of the new app
+            });
+        }));
 
-        res.status(200).send({ message: "Apps added successfully" });
+        await batch.commit(); // Execute the batch operation
+
+        res.status(200).send({ message: "Apps added successfully after deletion" });
     } catch (error) {
-        res.status(500).send(error.message)
+        res.status(500).send(error.message);
     }
 });
+
+
+// //POST : Endpoint to post many new apps
+// app.post("/apps", cors(), async (req, res) => {
+//     try {
+//         const apps = req.body; // Assuming req.body is an array of apps
+
+//         const orgSnapshot = await db.collection(ORG_COLLECTION).where("name", "in", apps.map(app => app.org)).get(); // FIXME should change this to be ID 
+
+//         const promises = [];
+
+//         orgSnapshot.forEach(async (orgDoc) => {
+//             const orgId = orgDoc.id;
+            
+//             apps.filter(app => app.org === orgDoc.data().name).forEach(async (app) => {
+//                 const appRef = db.collection(ORG_COLLECTION).doc(orgId).collection(APPS_COLLECTION).doc();
+//                 promises.push(
+//                     appRef.set({
+//                         name: app.name,
+//                         status: "Incomplete",
+//                         id_info: app.id_info,
+//                         hyperlinks: app.hyperlinks,
+//                         responses: app.responses
+//                     })
+//                 );
+//             });
+//         });
+
+//         await Promise.all(promises);
+
+//         res.status(200).send({ message: "Apps added successfully" });
+//     } catch (error) {
+//         res.status(500).send(error.message)
+//     }
+// });
 
 // ALTERNATE GET using params instead of body 
 app.get("/apps/:org", cors(), async (req, res) => {

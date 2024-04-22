@@ -22,11 +22,11 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Signup() {
     // FIXME make sure that I deal with auth tokens correctly (expiration)
-    // const [firstName, setFirstName] = useState('');
-    // const [lastName, setLastName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     // const [fullName, setFullName] = useState('');
-    // const [email, setEmail] = useState('');
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    // const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [org, setOrg] = useState('');
 
@@ -39,42 +39,15 @@ export default function Signup() {
 
     const [errorMessage, setErrorMessage] = useState();
 
-    // const handleSignup = (e) => {
-    //     e.preventDefault();
-    //     // Handle signup logic here
-    //     // console.log('First Name:', firstName);
-    //     // console.log('Last Name:', lastName);
-    //     // console.log('Full Name:', fullName);
-    //     // console.log('Email:', email);
-
-    //     // console.log('Username:', username);
-    //     // console.log('Password:', password);
-    //     // console.log('Org:', org);
-
-    //     // TODO - Add logic to send the data to the backend
-    //     const fetchURL = `${backendURL}/reviewer`;
-    //     const body = JSON.stringify({
-    //         username: username,
-    //         password: password,
-    //         org: org,
-    //     });
-    //     fetch(fetchURL, {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json', // Set the headers to inform the server about the type of the content
-    //         },
-    //         body: body,
-    //     });
-    //     console.log('Signup successful' + username + " " + org);
-    //     navigate('/dashboard');
-    // };
-
     const handleSignup = async (e) => {
         e.preventDefault();
 
         const fetchURL = `${backendURL}/reviewer`;
         const body = JSON.stringify({
-            username: username,
+            // username: username,
+            firstname: firstName,
+            lastName: lastName,
+            email: email,
             password: password,
             org: org,
         });
@@ -118,8 +91,19 @@ export default function Signup() {
         }
     };
 
-    const handleUsernameChange = (e) => {
-        setUsername(e.target.value);
+    // const handleUsernameChange = (e) => {
+    //     setUsername(e.target.value);
+    // };
+    const handleFirstNameChange = (e) => {
+        setFirstName(e.target.value);
+    };
+
+    const handleLastNameChange = (e) => {
+        setLastName(e.target.value);
+    };
+
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value);
     };
 
     const handlePasswordChange = (e) => {
@@ -143,10 +127,32 @@ export default function Signup() {
                         <CardBody>
                             <div className="flex">
                                 <Input
+                                    label="First Name"
+                                    variant="bordered"
+                                    placeholder="Your first name"
+                                    onChange={handleFirstNameChange}
+                                />
+                                <Spacer x={5} />
+                                <Input
+                                    label="Last Name"
+                                    variant="bordered"
+                                    placeholder="Your last name"
+                                    onChange={handleLastNameChange}
+                                />
+                            </div>
+                            <Spacer y={5} />
+                            <div className="flex">
+                                {/* <Input
                                     label="Userame"
                                     variant="bordered"
                                     placeholder="Choose a username"
                                     onChange={handleUsernameChange}
+                                /> */}
+                                <Input
+                                    label="Email"
+                                    variant="bordered"
+                                    placeholder="Your email address"
+                                    onChange={handleEmailChange}
                                 />
                                 <Spacer x={5} />
                                 <Input
@@ -182,6 +188,8 @@ export default function Signup() {
                                 <Button
                                     className="mx-auto max-w-[66.666%] bg-black text-white"
                                     variant="flat"
+                                    // className="mx-auto max-w-[66.666%]"
+                                    // variant="solid"
                                     size="md"
                                     color="primary"
                                     type="submit"

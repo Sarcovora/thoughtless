@@ -75,6 +75,7 @@ export default function TableView() {
 
     function getApps() {
         // console.log('fetching apps');
+        // FIXME Make sure this is pulling from the correct one
         const fetchURL = `${backendURL}/apps/TPEO`;
         fetch(fetchURL, {
             method: 'GET', // Make sure to use the correct HTTP method
@@ -89,6 +90,7 @@ export default function TableView() {
     }
 
     function getQuestions() {
+        // FIXME make sure this pulls from the correct org
         const fetchURL = `${backendURL}/questions/TPEO`;
         fetch(fetchURL, {
             method: 'GET', // Make sure to use the correct HTTP method
@@ -164,11 +166,12 @@ export default function TableView() {
                         <Button
                             className="bg-black text-white"
                             variant="flat"
+                            // variant="solid"
                             size="md"
                             color="primary"
                             onClick={() => {gotoUpload()}}
                         >
-                            Upload a Spreadsheet
+                            Upload Page
                         </Button>
                     </div>
                     <Spacer y={5} />

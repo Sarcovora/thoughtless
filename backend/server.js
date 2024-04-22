@@ -231,8 +231,16 @@ app.get("/questions/:org", cors(), async(req, res) => {
 
         // Access the qeustions list within the org document
         const questions = orgSnapshot.docs[0].data().questions; // Assuming there's only one org with this name
+        const links = orgSnapshot.docs[0].data().hyperlinks; 
+        const id_info = orgSnapshot.docs[0].data().id_info; 
+
+        const ret = {
+            questions: questions, 
+            links: links, 
+            id_info: id_info
+        }
     
-        res.status(200).send(questions);
+        res.status(200).send(ret);
     } catch (error) {
         res.status(500).send(error.message);
     }

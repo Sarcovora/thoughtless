@@ -69,7 +69,7 @@ const UploadPage = ({}) => {
     const handleUploadSuccess = (uploadedResponses) => {
         setResponses(uploadedResponses); // Update the state with the new data
         // initialize orgDetails to be an object with the keys being the columns and the values being 'question'
-        console.log(Object.keys(uploadedResponses[0]));
+        // console.log(Object.keys(uploadedResponses[0]));
         const initialOrgDetails = Object.keys(uploadedResponses[0]).reduce(
             (acc, key) => ({
                 ...acc,
@@ -77,14 +77,14 @@ const UploadPage = ({}) => {
             }),
             {},
         );
-        console.log(initialOrgDetails);
+        // console.log(initialOrgDetails);
 
         setOrgDetails(initialOrgDetails);
         // setOrgDetails(Object.keys(uploadedResponses[0]).reduce((acc, key) => ({ ...acc, [key]: 'question' })));
-        console.log('RESPONSES');
-        console.log(responses);
-        console.log('ORG DETAILS');
-        console.log(orgDetails);
+        // console.log('RESPONSES');
+        // console.log(responses);
+        // console.log('ORG DETAILS');
+        // console.log(orgDetails);
     };
 
     // create this array of objects from the responses file's keys
@@ -118,8 +118,8 @@ const UploadPage = ({}) => {
             org: 'tpeo', // this needs to be dynamically determined based on your logic
         };
 
-        console.log('APP DATA');
-        console.log(appsData);
+        // console.log('APP DATA');
+        // console.log(appsData);
         // console.log('ORG DATA');
         // console.log(orgDetailsData);
 
@@ -156,7 +156,7 @@ const UploadPage = ({}) => {
             }
 
             // Handle successful POST requests here, such as closing the modal or notifying the user
-            console.log('Data posted successfully');
+            // console.log('Data posted successfully');
         } catch (error) {
             // Handle errors here, such as updating the UI to display an error message
             console.error(error);

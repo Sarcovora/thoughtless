@@ -21,7 +21,8 @@ import { useNavigate } from 'react-router-dom';
 // import backgroundSvg from '../assets/topographical.svg';
 
 export default function Signup() {
-    const [username, setUsername] = useState('');
+    // const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     const [isVisible, setIsVisible] = React.useState(false);
@@ -36,10 +37,11 @@ export default function Signup() {
     const handleLogin = async (e) => {
         e.preventDefault();
 
-        console.log("HA YOU THOUGHT")
+        // console.log("HA YOU THOUGHT")
         const fetchURL = `${backendURL}/login`;
         const body = JSON.stringify({
-            username: username,
+            // username: username,
+            email: email,
             password: password,
         });
 
@@ -55,13 +57,13 @@ export default function Signup() {
             const data = await response.json(); // Parse JSON response
 
             if (response.ok) {
-                console.log('Login successful:', data);
+                // console.log('Login successful:', data);
                 navigate('/dashboard'); // Navigate to dashboard on success
 
                 // You can store the JWT token in local storage or state management library
                 const userData = JSON.stringify({
                     token: data.token,
-                    username: data.data.username,
+                    username: data.data.email,
                     org: data.data.org,
                 });
                 localStorage.setItem('userData', userData);
@@ -75,8 +77,12 @@ export default function Signup() {
         }
     };
 
-    const handleUsernameChange = (e) => {
-        setUsername(e.target.value);
+    // const handleUsernameChange = (e) => {
+    //     setUsername(e.target.value);
+    // };
+
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value);
     };
 
     const handlePasswordChange = (e) => {
@@ -93,12 +99,20 @@ export default function Signup() {
                     <p className="py-2 font-light">Glad to have you back!</p>
                     <form onSubmit={handleLogin}>
                         <CardBody>
-                            <div className="flex">
+                            {/* <div className="flex">
                                 <Input
                                     label="Userame"
                                     variant="bordered"
                                     placeholder="Choose a username"
                                     onChange={handleUsernameChange}
+                                />
+                            </div> */}
+                            <div className="flex">
+                                <Input
+                                    label="Email"
+                                    variant="bordered"
+                                    placeholder="Enter your email"
+                                    onChange={handleEmailChange}
                                 />
                             </div>
                             <Spacer y={5} />

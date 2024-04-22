@@ -64,7 +64,7 @@ export default function TableView() {
     };
 
     function gotoUpload() {
-        console.log('Upload button was clicked');
+        // console.log('Upload button was clicked');
         navigate('/upload');
     }
 
@@ -73,10 +73,11 @@ export default function TableView() {
         getQuestions();
     }, []);
 
+    // FIXME make sure this has an error state
     function getApps() {
         // console.log('fetching apps');
         // FIXME Make sure this is pulling from the correct one
-        const fetchURL = `${backendURL}/apps/TPEO`;
+        const fetchURL = `${backendURL}/apps/tpeo`;
         fetch(fetchURL, {
             method: 'GET', // Make sure to use the correct HTTP method
         })
@@ -91,7 +92,7 @@ export default function TableView() {
 
     function getQuestions() {
         // FIXME make sure this pulls from the correct org
-        const fetchURL = `${backendURL}/questions/TPEO`;
+        const fetchURL = `${backendURL}/questions/tpeo`;
         fetch(fetchURL, {
             method: 'GET', // Make sure to use the correct HTTP method
         })

@@ -65,7 +65,7 @@ export default function Signup() {
             const data = await response.json(); // Parse JSON response
 
             if (response.ok) {
-                console.log('Signup successful:', data);
+                // console.log('Signup successful:', data);
                 navigate('/dashboard'); // Navigate to dashboard on success
 
                 // You can store the JWT token in local storage or state management library

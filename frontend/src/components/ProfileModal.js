@@ -44,16 +44,27 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
         getFeedback();
     }, []);
 
+    useEffect(() => {
+        console.log('Updated feedback:', feedback);
+    }, [feedback]); // This useEffect runs whenever `feedback` changes.
+
     function getFeedback() {
         const userData = JSON.parse(localStorage.getItem('userData'));
         const org = userData?.org;
         const reviewer = userData?.username;
         const fetchURL = `${backendURL}/feedback/${org}/${selectedUser.name}/${reviewer}`;
+        console.log('FETCHING', fetchURL);
         fetch(fetchURL, {
             method: 'GET',
         })
             .then((response) => response.json())
             .then((data) => {
+                if (!data.feedbackArray || data.feedbackArray.length === 0) {
+                    data.feedbackArray = new Array(questions.length).fill(1);
+                }
+                if (!data.commentsArray || data.commentsArray.length === 0) {
+                    data.commentsArray = new Array(questions.length).fill('');
+                }
                 setFeedback(data);
                 setIsLoadingFeedback(false);
             });
@@ -122,7 +133,6 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
                                             <p className="mb-3">
                                                 {selectedUser.role}
                                             </p> */}
-
                                             {/* <Divider className="mb-3" />
 
                                             <p className="mb-1 font-semibold">
@@ -131,13 +141,10 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
                                             <p className="mb-3">
                                                 {selectedUser.team}
                                             </p> */}
-
                                             <Divider className="mb-3" />
-
                                             <p className="mb-1 font-semibold">
                                                 Review Status:
                                             </p>
-
                                             <Chip
                                                 className="capitalize"
                                                 color={
@@ -152,6 +159,7 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
                                             </Chip>
                                             <Divider className="my-5" />
                                             {/* ALL ID INFO */}
+                                            (id_info &&
                                             {id_info.map((info, index) => (
                                                 <div>
                                                     {/* <p className="mb-1 font-semibold">
@@ -171,6 +179,7 @@ const ProfileModal = ({ selectedUser, questions, id_info, links }) => {
                                                     </div>
                                                 </div>
                                             ))}
+                                            )
                                         </CardBody>
                                         {/* <Divider /> */}
                                         {/* <CardFooter> */}

@@ -46,7 +46,7 @@ export default function Signup() {
         const body = JSON.stringify({
             // username: username,
             firstname: firstName,
-            lastName: lastName,
+            lastname: lastName,
             email: email,
             password: password,
             org: org,
@@ -71,7 +71,8 @@ export default function Signup() {
                 // You can store the JWT token in local storage or state management library
                 const userData = JSON.stringify({
                     token: data.token,
-                    username: data.data.username,
+                    // username: data.data.username,
+                    username: email,
                     org: data.data.org,
                 });
                 localStorage.setItem('userData', userData);
